@@ -32,11 +32,19 @@ from service.common import status  # HTTP Status Codes
 ######################################################################
 @app.route("/")
 def index():
-    """Root URL response"""
-    return (
-        "Reminder: return some useful information in json format about the service here",
-        status.HTTP_200_OK,
-    )
+    """Root URL response with service metadata"""
+    service_info = {
+        "name": "products",
+        "version": "1.0.0",
+        "endpoints": {
+            "create": "POST /your-resource-models",
+            "read_all": "GET /your-resource-models",
+            "read_one": "GET /your-resource-models/<id>",
+            "update": "PUT /your-resource-models/<id>",
+            "delete": "DELETE /your-resource-models/<id>"
+        }
+    }
+    return jsonify(service_info), status.HTTP_200_OK
 
 
 ######################################################################
