@@ -23,32 +23,84 @@ and Delete YourResourceModel
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import YourResourceModel
+from service.models import Product
 from service.common import status  # HTTP Status Codes
-
-
-######################################################################
-# GET INDEX
-######################################################################
-@app.route("/")
-def index():
-    """Root URL response with service metadata"""
-    service_info = {
-        "name": "products",
-        "version": "1.0.0",
-        "endpoints": {
-            "create": "POST /your-resource-models",
-            "read_all": "GET /your-resource-models",
-            "read_one": "GET /your-resource-models/<id>",
-            "update": "PUT /your-resource-models/<id>",
-            "delete": "DELETE /your-resource-models/<id>"
-        }
-    }
-    return jsonify(service_info), status.HTTP_200_OK
 
 
 ######################################################################
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
-
 # Todo: Place your REST API code here ...
+######################################################################
+# GET INDEX
+######################################################################
+@app.route("/")
+def index():
+    """Root URL response"""
+    app.logger.info("Request for Root URL")
+    return (
+        jsonify(
+            name="Product REST API Service",
+            version="1.0",
+            #TODO: Uncomment this line when list_products implemented!
+            #paths=url_for("list_products", _external=True),
+        ),
+        status.HTTP_200_OK,
+    )
+
+
+######################################################################
+# CREATE A NEW PRODUCT
+######################################################################
+@app.route("/products", methods=["POST"])
+def create_products():
+    """
+    Create a Product
+    This endpoint will create a product based the data in the body that is posted
+    """
+    app.logger.info("Request to Create a product...")
+    check_content_type("application/json")
+
+    product = Product()
+    # Get the data from the request and deserialize it
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    product.deserialize(data)
+
+    # Save the new product to the database
+    product.create()
+    app.logger.info("product with new id [%s] saved!", product.id)
+
+    # Return the location of the new product
+    #TODO: Uncomment this line when get_products implemented
+    #location_url = url_for("get_products", product_id=product.id, _external=True)
+    location_url = "unknown"
+
+    return jsonify(product.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
+
+
+######################################################################
+#  U T I L I T Y   F U N C T I O N S
+######################################################################
+
+
+######################################################################
+# Checks the ContentType of a request
+######################################################################
+def check_content_type(content_type) -> None:
+    """Checks that the media type is correct"""
+    if "Content-Type" not in request.headers:
+        app.logger.error("No Content-Type specified.")
+        abort(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            f"Content-Type must be {content_type}",
+        )
+
+    if request.headers["Content-Type"] == content_type:
+        return
+
+    app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
+    abort(
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        f"Content-Type must be {content_type}",
+    )
