@@ -42,8 +42,8 @@ def index():
         jsonify(
             name="Product REST API Service",
             version="1.0",
-            #TODO: Uncomment this line when list_products implemented!
-            #paths=url_for("list_products", _external=True),
+            # TODO: Uncomment this line when list_products implemented!
+            # paths=url_for("list_products", _external=True),
         ),
         status.HTTP_200_OK,
     )
@@ -73,8 +73,42 @@ def create_products():
 
     # Return the location of the new product
     location_url = url_for("get_products", product_id=product.id, _external=True)
+    return (
+        jsonify(product.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
-    return jsonify(product.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
+
+######################################################################
+# UPDATE A PRODUCT
+######################################################################
+@app.route("/products/<int:product_id>", methods=["PUT"])
+def update_products(product_id):
+    """
+    Update a Product
+    This endpoint will update a Product based the body that is posted
+    """
+    app.logger.info("Request to Update a product with id [%s]", product_id)
+    check_content_type("application/json")
+
+    # Attempt to find the Product and abort if not found
+    product = Product.find(product_id)
+    if not product:
+        abort(
+            status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found."
+        )
+
+    # Update the Product with the new data
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    product.deserialize(data)
+
+    # Save the updates to the database
+    product.update()
+
+    app.logger.info("Product with ID: %d updated.", product.id)
+    return jsonify(product.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
@@ -123,3 +157,28 @@ def get_products(product_id):
 
     app.logger.info("Returning product: %s", product.name)
     return jsonify(product.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+# LIST ALL PRODUCTS
+######################################################################
+@app.route("/products", methods=["GET"])
+def list_products():
+    """Returns all of the Products"""
+    app.logger.info("Request for product list")
+
+    products = []
+
+    # Parse any arguments from the query string
+    name = request.args.get("name")
+
+    if name:
+        app.logger.info("Find by name: %s", name)
+        products = Product.find_by_name(name)
+    else:
+        app.logger.info("Find all")
+        products = Product.all()
+
+    results = [product.serialize() for product in products]
+    app.logger.info("Returning %d products", len(results))
+    return jsonify(results), status.HTTP_200_OK
