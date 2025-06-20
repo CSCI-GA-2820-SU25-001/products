@@ -72,9 +72,7 @@ def create_products():
     app.logger.info("product with new id [%s] saved!", product.id)
 
     # Return the location of the new product
-    #TODO: Uncomment this line when get_products implemented
-    #location_url = url_for("get_products", product_id=product.id, _external=True)
-    location_url = "unknown"
+    location_url = url_for("get_products", product_id=product.id, _external=True)
 
     return jsonify(product.serialize()), status.HTTP_201_CREATED, {"Location": location_url}
 

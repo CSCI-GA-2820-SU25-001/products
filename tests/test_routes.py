@@ -95,12 +95,11 @@ class TestProduct(TestCase):
         new_product = response.get_json()
         self.assertEqual(new_product["name"], test_product.name)
     
-        #TODO: Uncomment this code when get_accounts() is implemented
         # Check that the location header was correct
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_product = response.get_json()
-        # self.assertEqual(new_product["name"], test_product.name)
+        response = self.client.get(location)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_product = response.get_json()
+        self.assertEqual(new_product["name"], test_product.name)
     # ----------------------------------------------------------
     # TEST READ
     # ----------------------------------------------------------
