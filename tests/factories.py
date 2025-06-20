@@ -15,6 +15,9 @@ class ProductFactory(factory.Factory):
         model = Product
 
     id = factory.Sequence(lambda n: n)
-    name = factory.Faker("first_name")
+    name = factory.Faker("word")
+    description = factory.Faker("sentence")
+    price = factory.Faker("pyfloat", left_digits=3, right_digits=2, positive=True)
+    available = True
 
     # Todo: Add your other attributes here...

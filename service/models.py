@@ -26,7 +26,10 @@ class Product(db.Model):
     # Table Schema
     ##################################################
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(63))
+    name = db.Column(db.String(63), nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    price = db.Column(db.Float, nullable=True)
+    available = db.Column(db.Boolean, default=True)
 
     # Todo: Place the rest of your schema here...
 
@@ -72,7 +75,13 @@ class Product(db.Model):
 
     def serialize(self):
         """Serializes a Product into a dictionary"""
-        return {"id": self.id, "name": self.name}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "price": self.price,
+            "available": self.available,
+        }
 
     def deserialize(self, data):
         """
@@ -83,6 +92,9 @@ class Product(db.Model):
         """
         try:
             self.name = data["name"]
+            self.description = data.get("description")
+            self.price = data.get("price")
+            self.available = data.get("available", True)
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
@@ -120,4 +132,4 @@ class Product(db.Model):
             name (string): the name of the Products you want to match
         """
         logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(cls.name == name)
+        return cls.query.filter(cls.name == name).all()
