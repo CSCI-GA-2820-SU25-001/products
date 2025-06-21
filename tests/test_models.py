@@ -65,15 +65,18 @@ class TestProduct(TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_example_replace_this(self):
+    def test_create_product(self):
         """It should create a Product"""
         # Todo: Remove this test case example
-        resource = ProductFactory()
-        resource.create()
-        self.assertIsNotNone(resource.id)
-        found = Product.all()
-        self.assertEqual(len(found), 1)
-        data = Product.find(resource.id)
-        self.assertEqual(data.name, resource.name)
+        test_product = ProductFactory()
+        test_product.create()
+        #location = response.headers.get("Location", None)
+        self.assertIsNotNone(test_product.id)
+        found=Product.all()
+        data = Product.find(test_product.id)
+        self.assertEqual(data.name, test_product.name)
+        self.assertEqual(data.description, test_product.description)
+        self.assertEqual(float(data.price), test_product.price)
+        self.assertEqual(data.available, test_product.available)
 
     # Todo: Add your test cases here...
