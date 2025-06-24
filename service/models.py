@@ -31,8 +31,6 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=True)
     available = db.Column(db.Boolean, default=True)
 
-    # Todo: Place the rest of your schema here...
-
     def __repr__(self):
         return f"<Product {self.name} id=[{self.id}]>"
 
@@ -55,6 +53,8 @@ class Product(db.Model):
         Updates a Product to the database
         """
         logger.info("Saving %s", self.name)
+        if not self.id:
+            raise DataValidationError("Update called with empty ID field")
         try:
             db.session.commit()
         except Exception as e:
@@ -83,28 +83,30 @@ class Product(db.Model):
             "available": self.available,
         }
 
-    def deserialize(self, data):
+    def deserialize(self, data: dict):
         """
         Deserializes a Product from a dictionary
-
         Args:
-            data (dict): A dictionary containing the resource data
+            data (dict): A dictionary containing the Product data
         """
         try:
             self.name = data["name"]
-            self.description = data.get("description")
-            self.price = data.get("price")
-            self.available = data.get("available", True)
+            self.description = data["description"]
+            if isinstance(data["available"], bool):
+                self.available = data["available"]
+            else:
+                raise DataValidationError(
+                    "Invalid type for boolean [available]: "
+                    + str(type(data["available"]))
+                )
+            self.price = data["price"]  # create enum from string
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
-            raise DataValidationError(
-                "Invalid Product: missing " + error.args[0]
-            ) from error
+            raise DataValidationError("Invalid product: missing " + error.args[0]) from error
         except TypeError as error:
             raise DataValidationError(
-                "Invalid Product: body of request contained bad or no data "
-                + str(error)
+                "Invalid product: body of request contained bad or no data " + str(error)
             ) from error
         return self
 
@@ -133,3 +135,47 @@ class Product(db.Model):
         """
         logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name).all()
+
+    @classmethod
+    def find_by_description(cls, description: str) -> list:
+        """Returns all of the Products in a description
+
+        :param description: the description of the Products you want to match
+        :type description: str
+
+        :return: a collection of Products in that description
+        :rtype: list
+
+        """
+        logger.info("Processing description query for %s ...", description)
+        return cls.query.filter(cls.description == description)
+
+    @classmethod
+    def find_by_availability(cls, available: bool = True) -> list:
+        """Returns all Products by their availability
+
+        :param available: True for products that are available
+        :type available: str
+
+        :return: a collection of Products that are available
+        :rtype: list
+
+        """
+        if not isinstance(available, bool):
+            raise TypeError("Invalid availability, must be of type boolean")
+        logger.info("Processing available query for %s ...", available)
+        return cls.query.filter(cls.available == available)
+
+    @classmethod
+    def find_by_price(cls, price: float) -> list:
+        """Returns all Products by their Price
+
+        :param price: values are float
+        :type available: enum
+
+        :return: a collection of Products that are available
+        :rtype: list
+
+        """
+        logger.info("Processing price query for %s ...", price)
+        return cls.query.filter(cls.price == price)

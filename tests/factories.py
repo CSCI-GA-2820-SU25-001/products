@@ -19,5 +19,3 @@ class ProductFactory(factory.Factory):
     description = factory.Faker("sentence")
     price = factory.Faker("pyfloat", left_digits=3, right_digits=2, positive=True)
     available = True
-
-    # Todo: Add your other attributes here...

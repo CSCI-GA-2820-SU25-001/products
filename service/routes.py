@@ -30,7 +30,6 @@ from service.common import status  # HTTP Status Codes
 ######################################################################
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
-# Todo: Place your REST API code here ...
 ######################################################################
 # GET INDEX
 ######################################################################
@@ -42,8 +41,7 @@ def index():
         jsonify(
             name="Product REST API Service",
             version="1.0",
-            # TODO: Uncomment this line when list_products implemented!
-            # paths=url_for("list_products", _external=True),
+            paths=url_for("list_products", _external=True),
         ),
         status.HTTP_200_OK,
     )
@@ -109,6 +107,7 @@ def update_products(product_id):
 
     app.logger.info("Product with ID: %d updated.", product.id)
     return jsonify(product.serialize()), status.HTTP_200_OK
+
 
 ######################################################################
 # DELETE A PRODUCT
@@ -190,10 +189,25 @@ def list_products():
 
     # Parse any arguments from the query string
     name = request.args.get("name")
+    description = request.args.get("description")
+    available = request.args.get("available")
+    price = request.args.get("price")
 
-    if name:
+    if description:
+        app.logger.info("Find by description: %s", description)
+        products = Product.find_by_description(description)
+    elif name:
         app.logger.info("Find by name: %s", name)
         products = Product.find_by_name(name)
+    elif available:
+        app.logger.info("Find by available: %s", available)
+        # create bool from string
+        available_value = available.lower() in ["true", "yes", "1"]
+        products = Product.find_by_availability(available_value)
+    elif price:
+        app.logger.info("Find by price: %d", price)
+        # create enum from string
+        products = Product.find_by_price(price)
     else:
         app.logger.info("Find all")
         products = Product.all()
