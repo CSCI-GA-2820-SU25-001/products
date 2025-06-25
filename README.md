@@ -1,64 +1,168 @@
-# NYU DevOps Project Template
-
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
-
-This is a skeleton you can use to start your projects.
-
-**Note:** _Feel free to overwrite this `README.md` file with the one that describes your project._
+# Product Service
 
 ## Overview
 
-This project template contains starter code for your class project. The `/service` folder contains your `models.py` file for your model and a `routes.py` file for your service. The `/tests` folder has test case starter code for testing the model and the service separately. All you need to do is add your functionality. You can use the [lab-flask-tdd](https://github.com/nyu-devops/lab-flask-tdd) for code examples to copy from.
+This is a RESTful Product microservice for managing product records in an online store. The service is built using Flask and PostgreSQL, and supports full CRUD operations along with query filtering.
 
-## Automatic Setup
+The `/service` folder contains the business logic and service endpoints. The `/tests` folder contains model and route-level unit tests.
 
-The best way to use this repo is to start your own repo using it as a git template. To do this just press the green **Use this template** button in GitHub and this will become the source for your repository.
-
-## Manual Setup
-
-You can also clone this repository and then copy and paste the starter code into your project repo folder on your local computer. Be careful not to copy over your own `README.md` file so be selective in what you copy.
-
-There are 4 hidden files that you will need to copy manually if you use the Mac Finder or Windows Explorer to copy files from this folder into your repo folder.
-
-These should be copied using a bash shell as follows:
-
-```bash
-    cp .gitignore  ../<your_repo_folder>/
-    cp .flaskenv ../<your_repo_folder>/
-    cp .gitattributes ../<your_repo_folder>/
-```
+---
 
 ## Contents
 
-The project contains the following:
-
-```text
-.gitignore          - this will ignore vagrant and other metadata files
-.flaskenv           - Environment variables to configure Flask
-.gitattributes      - File to gix Windows CRLF issues
-.devcontainers/     - Folder with support for VSCode Remote Containers
-dot-env-example     - copy to .env to use environment variables
-pyproject.toml      - Poetry list of Python libraries required by your code
-
-service/                   - service python package
-├── __init__.py            - package initializer
-├── config.py              - configuration parameters
-├── models.py              - module with business models
-├── routes.py              - module with service routes
-└── common                 - common code package
-    ├── cli_commands.py    - Flask command to recreate all tables
-    ├── error_handlers.py  - HTTP error handling code
-    ├── log_handlers.py    - logging setup code
-    └── status.py          - HTTP status constants
-
-tests/                     - test cases package
-├── __init__.py            - package initializer
-├── factories.py           - Factory for testing with fake objects
-├── test_cli_commands.py   - test suite for the CLI
-├── test_models.py         - test suite for business models
-└── test_routes.py         - test suite for service routes
 ```
+├── .flaskenv                  # Flask environment settings
+├── dot-env-example            # Template for .env environment config
+├── Makefile                   # Common development commands
+├── pyproject.toml             # Python dependencies via Poetry
+
+service/                       # Service package
+├── __init__.py                # Package initializer
+├── config.py                  # Configuration parameters
+├── models.py                  # Product data model and DB logic
+├── routes.py                  # REST API route handlers
+└── common/                    # Common shared utilities
+    ├── cli_commands.py        # Flask CLI: init/reset database
+    ├── error_handlers.py      # Global error handlers
+    ├── log_handlers.py        # Logging setup
+    └── status.py              # HTTP status code definitions
+
+tests/                         # Test suite
+├── __init__.py
+├── factories.py               # Factory for creating test data
+├── test_models.py             # Unit tests for models
+├── test_routes.py             # Unit tests for API routes
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint             | Description                     |
+|--------|----------------------|---------------------------------|
+| GET    | `/`                  | Returns service metadata        |
+| POST   | `/products`          | Creates a new product           |
+| GET    | `/products`          | Lists all products              |
+| GET    | `/products/{id}`     | Gets a product by ID            |
+| PUT    | `/products/{id}`     | Updates a product by ID         |
+| DELETE | `/products/{id}`     | Deletes a product by ID         |
+| GET    | `/products?name=...` | Finds products by name          |
+| GET    | `/products?description=...` | Finds products by description |
+| GET    | `/products?available=true or false` | Finds products by availability |
+
+**Create a Product**  
+```bash
+http POST :8080/products name="Toothbrush" description="Soft bristles" price:=9.99 available:=true
+```
+
+**List All Products**  
+```bash
+http GET :8080/products
+```
+
+**Read a Product by ID**  
+```bash
+http GET :8080/products/1
+```
+
+**Update a Product by ID**  
+```bash
+http PUT :8080/products/1 name="Updated Brush" description="Hard bristles" price:=12.99 available:=false
+```
+
+**Delete a Product by ID**  
+```bash
+http DELETE :8080/products/1
+```
+
+**Query Products by Name**  
+```bash
+http GET :8080/products?name=Toothbrush
+```
+
+**Query Products by Availability**  
+```bash
+http GET :8080/products?available=true
+```
+
+##  Error Handling
+
+All errors return JSON responses only:
+
+- **404 Not Found** – if the product ID doesn’t exist  
+- **400 Bad Request** – for malformed request body  
+- **415 Unsupported Media Type** – if `Content-Type` is not `application/json`  
+- **405 Method Not Allowed** – e.g., using `PUT /products` without ID
+
+---
+
+
+## Running the Service
+
+### Prerequisites
+
+- Python 3.9+
+- PostgreSQL running locally or via Docker
+- Git
+
+---
+
+### Initial Setup
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/CSCI-GA-2820-SU25-001/products.git
+
+cd products
+```
+
+---
+
+### Running Locally
+
+Start the service using:
+
+```bash
+make run
+```
+
+The service will be available at `http://localhost:8080`.
+
+---
+
+## Testing
+
+Run the full test suite:
+
+```bash
+make test
+```
+
+Run individual test files:
+
+```bash
+pytest tests/test_models.py
+pytest tests/test_routes.py
+```
+
+Code coverage: **96%**
+
+---
+
+## Development Commands
+
+| Command         | Description                             |
+|----------------|-----------------------------------------|
+| `make install` | Install all Python dependencies         |
+| `make lint`    | Run flake8 for code style checks        |
+| `make run`     | Start the Flask service via Honcho      |
+| `make test`    | Run all unit tests with coverage        |
+| `make secret`  | Generate a new Flask secret key         |
+| `make clean`   | Remove build and cache artifacts        |
+
+
+---
 
 ## License
 
