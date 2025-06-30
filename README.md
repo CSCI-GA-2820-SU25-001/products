@@ -1,4 +1,4 @@
-[![CI Build](https://github.com/nyu-devops/lab-flask-tdd/actions/workflows/ci.yml/badge.svg)](https://github.com/nyu-devops/lab-flask-tdd/actions/workflows/ci.yml)
+[![CI Build](https://github.com/CSCI-GA-2820-SU25-001/products/actions/workflows/ci.yml/badge.svg)](https://github.com/CSCI-GA-2820-SU25-001/products/actions/workflows/ci.yml)
 
 # Product Service
 
