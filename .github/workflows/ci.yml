@@ -70,4 +70,4 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: nyu-devops/lab-flask-tdd        
+          slug: CSCI-GA-2820-SU25-001/products        
