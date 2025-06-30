@@ -1,3 +1,5 @@
+[![CI Build](https://github.com/nyu-devops/lab-flask-tdd/actions/workflows/ci.yml/badge.svg)](https://github.com/nyu-devops/lab-flask-tdd/actions/workflows/ci.yml)
+
 # Product Service
 
 ## Overview
