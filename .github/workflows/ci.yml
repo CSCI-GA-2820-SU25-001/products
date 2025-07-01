@@ -1,0 +1,73 @@
+name: CI Build
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+    - 'README.md'
+    - '.vscode/**'
+
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+    - 'README.md'
+    - '.vscode/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # use a known build environment
+    container: python:3.11-slim
+
+    # Required services    
+    services:
+      # Label used to access the service container
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: pgs3cr3t
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # Steps for the build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+              
+      - name: Install Python package dependencies
+        run: |
+          python -m pip install -U pip pipenv
+          pipenv install --system --dev
+
+      - name: Run Code Quality Checks
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 service tests --count --select=E9,F63,F7,F82 --show-source --statistics
+          # check for complexity. The GitHub editor is 127 chars wide
+          flake8 service tests --count --max-complexity=10 --max-line-length=127 --statistics
+          # Run pylint on the service package
+          pylint service tests --max-line-length=127
+
+      - name: Run unit tests with pytest
+        run: |
+          pytest --pspec --cov=service --cov-fail-under=95 --disable-warnings --cov-report=xml
+        env:
+          FLASK_APP: "wsgi:app"
+          DATABASE_URI: "postgresql+psycopg://postgres:pgs3cr3t@postgres:5432/testdb"
+
+      - name: Install packages for Codecov to work
+        run: apt update && apt install -y git curl gpg
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: CSCI-GA-2820-SU25-001/products
