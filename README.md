@@ -1,5 +1,6 @@
 [![CI Build](https://github.com/CSCI-GA-2820-SU25-001/products/actions/workflows/ci.yml/badge.svg)](https://github.com/CSCI-GA-2820-SU25-001/products/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/CSCI-GA-2820-SU25-001/products/graph/badge.svg?token=FXUSYI35YL)](https://codecov.io/gh/CSCI-GA-2820-SU25-001/products)
+[![BDD Tests](https://github.com/CSCI-GA-2820-SU25-001/products/actions/workflows/bdd.yml/badge.svg)](https://github.com/CSCI-GA-2820-SU25-001/products/actions/workflows/bdd.yml)
 # Product Service
 
 ## Overview
