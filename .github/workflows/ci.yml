@@ -56,6 +56,12 @@ jobs:
           # Run pylint on the service package
           pylint service tests --max-line-length=127
 
+      - name: Initialize Database Tables
+        run: flask db-create
+        env:
+          FLASK_APP: "wsgi:app"
+          DATABASE_URI: "postgresql+psycopg://postgres:pgs3cr3t@postgres:5432/testdb"
+
       - name: Run unit tests with pytest
         run: |
           pytest --pspec --cov=service --cov-fail-under=95 --disable-warnings --cov-report=xml
