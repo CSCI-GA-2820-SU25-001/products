@@ -77,12 +77,15 @@ class TestProduct(TestCase):
             test_product = ProductFactory()
             response = self.client.post(BASE_URL, json=test_product.serialize())
             self.assertEqual(
-                response.status_code, status.HTTP_201_CREATED, "Could not create test product"
+                response.status_code,
+                status.HTTP_201_CREATED,
+                "Could not create test product",
             )
             new_product = response.get_json()
             test_product.id = new_product["id"]
             products.append(test_product)
         return products
+
     ######################################################################
     #  P L A C E   T E S T   C A S E S   H E R E
     ######################################################################
@@ -109,6 +112,7 @@ class TestProduct(TestCase):
             self.assertIn("description", product)
             self.assertIn("price", product)
             self.assertIn("available", product)
+
     # ----------------------------------------------------------
     # TEST QUERY
     # ----------------------------------------------------------
@@ -132,10 +136,11 @@ class TestProduct(TestCase):
         """It should Query Products by Description"""
         products = self._create_products(10)
         test_description = products[0].description
-        description_products = [product for product in products if product.description == test_description]
+        description_products = [
+            product for product in products if product.description == test_description
+        ]
         response = self.client.get(
-            BASE_URL,
-            query_string=f"description={quote_plus(test_description)}"
+            BASE_URL, query_string=f"description={quote_plus(test_description)}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
@@ -147,17 +152,21 @@ class TestProduct(TestCase):
     def test_query_by_availability(self):
         """It should Query Products by availability"""
         products = self._create_products(10)
-        available_products = [product for product in products if product.available is True]
-        unavailable_products = [product for product in products if product.available is False]
+        available_products = [
+            product for product in products if product.available is True
+        ]
+        unavailable_products = [
+            product for product in products if product.available is False
+        ]
         available_count = len(available_products)
         unavailable_count = len(unavailable_products)
         logging.debug("Available Products [%d] %s", available_count, available_products)
-        logging.debug("Unavailable Products [%d] %s", unavailable_count, unavailable_products)
+        logging.debug(
+            "Unavailable Products [%d] %s", unavailable_count, unavailable_products
+        )
 
         # test for available
-        response = self.client.get(
-            BASE_URL, query_string="available=true"
-        )
+        response = self.client.get(BASE_URL, query_string="available=true")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), available_count)
@@ -166,9 +175,7 @@ class TestProduct(TestCase):
             self.assertEqual(product["available"], True)
 
         # test for unavailable
-        response = self.client.get(
-            BASE_URL, query_string="available=false"
-        )
+        response = self.client.get(BASE_URL, query_string="available=false")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), unavailable_count)
@@ -194,7 +201,9 @@ class TestProduct(TestCase):
         new_product = response.get_json()
         self.assertEqual(new_product["name"], test_product.name)
         self.assertEqual(new_product["description"], test_product.description)
-        self.assertAlmostEqual(float(new_product["price"]), float(test_product.price), places=2)
+        self.assertAlmostEqual(
+            float(new_product["price"]), float(test_product.price), places=2
+        )
         self.assertEqual(new_product["available"], test_product.available)
 
     # ----------------------------------------------------------
@@ -255,7 +264,9 @@ class TestProduct(TestCase):
 
         # New assertions for added fields
         self.assertEqual(data["description"], test_product.description)
-        self.assertAlmostEqual(float(data["price"]), float(test_product.price), places=2)
+        self.assertAlmostEqual(
+            float(data["price"]), float(test_product.price), places=2
+        )
         self.assertEqual(data["available"], test_product.available)
 
     def test_get_product_not_found(self):
@@ -273,6 +284,7 @@ class TestProduct(TestCase):
         data = response.get_json()
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
+
 
 ######################################################################
 #  T E S T   S A D   P A T H S
