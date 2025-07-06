@@ -133,7 +133,15 @@ class ProductResource(Resource):
 # Optional: for testing root URL
 @api_bp.route("/")
 def index():
-    return {"message": "Product API"}, 200
+    return """
+        <html>
+            <head><title>Product API</title></head>
+            <body>
+                <h2>Welcome to the Product API 👋</h2>
+                <p><a href="/apidocs">Click me to view the Swagger Docs </a></p>
+            </body>
+        </html>
+    """, 200
 
 
 # Utility function if needed elsewhere
