@@ -26,7 +26,6 @@ from click.testing import CliRunner
 
 # pylint: disable=unused-import
 from wsgi import app  # noqa: F401
-from service.common.cli_commands import db_create  # noqa: E402
 
 
 class TestFlaskCLI(TestCase):
@@ -40,5 +39,8 @@ class TestFlaskCLI(TestCase):
         """It should call the db-create command"""
         db_mock.return_value = MagicMock()
         with patch.dict(os.environ, {"FLASK_APP": "wsgi:app"}, clear=True):
-            result = self.runner.invoke(db_create)
+            from service.common.cli_commands import init_cli
+
+            init_cli(app)
+            result = self.runner.invoke(app.cli, args=["db-create"])
             self.assertEqual(result.exit_code, 0)
