@@ -75,7 +75,7 @@ class TestProduct(TestCase):
         products = []
         for i in range(count):
             test_product = ProductFactory()
-            test_product.available = (i % 2 == 0)
+            test_product.available = i % 2 == 0
             response = self.client.post(BASE_URL, json=test_product.serialize())
             self.assertEqual(
                 response.status_code, status.HTTP_201_CREATED, "Could not create test product"

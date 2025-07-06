@@ -66,6 +66,7 @@ product_args.add_argument("price", type=float)
 
 @ns.route("/")
 class ProductCollection(Resource):
+    """Handles collection-level operations for Products"""
     @ns.expect(product_args)
     @ns.marshal_list_with(product_model)
     def get(self):
@@ -81,8 +82,7 @@ class ProductCollection(Resource):
                 return [p.serialize() for p in Product.find_by_availability(True)]
             if available_str == "false":
                 return [p.serialize() for p in Product.find_by_availability(False)]
-            else:
-                abort(status.HTTP_400_BAD_REQUEST, "Invalid value for 'available'. Must be 'true' or 'false'.")
+            abort(status.HTTP_400_BAD_REQUEST, "Invalid value for 'available'. Must be 'true' or 'false'.")
         if args["price"]:
             return Product.find_by_price(args["price"])
         return Product.all()
@@ -103,6 +103,7 @@ class ProductCollection(Resource):
 @ns.route("/<int:product_id>")
 @ns.param("product_id", "The product ID")
 class ProductResource(Resource):
+    """Handles item-level operations for Products"""
     @ns.marshal_with(product_model)
     def get(self, product_id):
         """Get a product by ID"""
@@ -133,6 +134,7 @@ class ProductResource(Resource):
 # Optional: for testing root URL
 @api_bp.route("/")
 def index():
+    """Returns a simple HTML page with link to API docs"""
     return """
         <html>
             <head><title>Product API</title></head>
@@ -146,10 +148,13 @@ def index():
 
 # Utility function if needed elsewhere
 def generate_apikey():
+    """Generates a secure API key"""
     return secrets.token_hex(16)
 
 
 @api.route("/products", methods=["PUT"])
 class ProductMethodNotAllowed(Resource):
+    """Handles invalid PUT requests on the product collection"""
     def put(self):
+        """Returns 405 Method Not Allowed for PUT on /products"""
         abort(status.HTTP_405_METHOD_NOT_ALLOWED, "Method not allowed")
