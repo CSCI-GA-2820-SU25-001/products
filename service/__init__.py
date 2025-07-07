@@ -23,7 +23,7 @@ from flask import Flask
 from service import config
 from service.common import log_handlers
 from service.common.cli_commands import init_cli
-from service.models import db
+
 
 ############################################################
 # Initialize the Flask instance
@@ -35,11 +35,6 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(config)
 
-    # Initialize Plugins
-    # pylint: disable=import-outside-toplevel
-    
-
-    db.init_app(app)
     # Turn off strict slashes because it violates best practices
     app.url_map.strict_slashes = False
 
@@ -47,10 +42,12 @@ def create_app():
         # Import the routes After the Flask app is created
         # pylint: disable=import-outside-toplevel
         from service.routes import api_bp, generate_apikey
+
         app.register_blueprint(api_bp)
 
         try:
             from service.models import db
+
             db.init_app(app)
 
         except Exception as error:  # pylint: disable=broad-except
@@ -63,7 +60,9 @@ def create_app():
         init_cli(app)
 
         app.logger.info(70 * "*")
-        app.logger.info("  P R O D U C T   S E R V I C E   R U N N I N G  ".center(70, "*"))
+        app.logger.info(
+            "  P R O D U C T   S E R V I C E   R U N N I N G  ".center(70, "*")
+        )
         app.logger.info(70 * "*")
 
         # If an API Key was not provided, autogenerate one
