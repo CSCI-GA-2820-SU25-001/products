@@ -32,7 +32,7 @@ DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
 
-BASE_URL = "/products"
+BASE_URL = "/api/products"
 
 
 ######################################################################
@@ -73,8 +73,9 @@ class TestProduct(TestCase):
     def _create_products(self, count: int = 1) -> list:
         """Factory method to create products in bulk"""
         products = []
-        for _ in range(count):
+        for i in range(count):
             test_product = ProductFactory()
+            test_product.available = i % 2 == 0
             response = self.client.post(BASE_URL, json=test_product.serialize())
             self.assertEqual(
                 response.status_code, status.HTTP_201_CREATED, "Could not create test product"
@@ -303,6 +304,7 @@ class TestSadPaths(TestCase):
         test_product = ProductFactory()
         logging.debug(test_product)
         # change available to a string
-        test_product.available = "true"
-        response = self.client.post(BASE_URL, json=test_product.serialize())
+        test_data = test_product.serialize()
+        test_data["available"] = "yes"
+        response = self.client.post(BASE_URL, json=test_data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

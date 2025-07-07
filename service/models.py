@@ -151,7 +151,7 @@ class Product(db.Model):
 
         """
         logger.info("Processing description query for %s ...", description)
-        return cls.query.filter(cls.description == description)
+        return cls.query.filter(cls.description == description).all()
 
     @classmethod
     def find_by_availability(cls, available: bool = True) -> list:

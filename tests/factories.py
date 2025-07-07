@@ -16,6 +16,6 @@ class ProductFactory(factory.Factory):
 
     id = factory.Sequence(lambda n: n)
     name = factory.Faker("word")
-    description = factory.Faker("sentence")
+    description = "For testing"
     price = factory.Faker("pyfloat", left_digits=3, right_digits=2, positive=True)
-    available = True
+    available = factory.Faker("pybool")
