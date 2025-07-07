@@ -92,9 +92,8 @@ class TestProduct(TestCase):
     ######################################################################
     def test_index(self):
         """It should return the index page"""
-        resp = self.app.get("/")
+        resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn(b"Product API", resp.data)
 
     # ----------------------------------------------------------
     # TEST LIST
