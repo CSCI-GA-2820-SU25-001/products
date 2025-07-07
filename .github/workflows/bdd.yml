@@ -28,7 +28,6 @@ jobs:
           POSTGRES_DB: testdb
         ports:
           - 5432:5432
-        # Set health checks to wait until postgres has started
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -38,6 +37,7 @@ jobs:
           python -m pip install -U pip pipenv
           pipenv install --system --dev
 
+      # >>> ADD THIS MIGRATION STEP <<<
       - name: Run database migrations
         run: flask db upgrade
         env:
@@ -58,4 +58,3 @@ jobs:
         run: behave
         env:
           DRIVER: "chrome"
-  
