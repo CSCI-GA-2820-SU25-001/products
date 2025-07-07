@@ -38,6 +38,11 @@ jobs:
           python -m pip install -U pip pipenv
           pipenv install --system --dev
 
+      - name: Run database migrations
+        run: flask db upgrade
+        env:
+          DATABASE_URI: "postgresql+psycopg://postgres:pgs3cr3t@postgres:5432/testdb"
+
       - name: Run the service locally
         run: |
           echo "\n*** STARTING APPLICATION ***\n"
