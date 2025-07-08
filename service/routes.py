@@ -172,3 +172,19 @@ def default_error_handler(error):
     """Defines the default errorhandler"""
     message = str(error)
     return {"message": message}, getattr(error, "code", 500)
+
+
+@ns.route("/<int:product_id>/purchase")
+@ns.param("product_id", "The product ID")
+class ProductPurchaseResource(Resource):
+    """Handles purchasing products"""
+
+    def put(self, product_id):
+        """Returns 404 Not Found, purchasing invaild products"""
+        product = Product.find(product_id)
+        if not product:
+            api.abort(
+                status.HTTP_404_NOT_FOUND, f"Product with id {product_id} was not found"
+            )
+        # Implement purchase logic here...
+        return product.serialize()
