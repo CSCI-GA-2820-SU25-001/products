@@ -155,16 +155,20 @@ def index():
 @api.route("/products", methods=["PUT"])
 class ProductMethodNotAllowed(Resource):
     """Handles invalid PUT requests on the product collection"""
+
     def put(self):
         """Returns 405 Method Not Allowed for PUT on /products"""
         abort(status.HTTP_405_METHOD_NOT_ALLOWED, "Method not allowed")
+
 
 # Utility function if needed elsewhere
 def generate_apikey():
     """Generates a secure API key"""
     return secrets.token_hex(16)
 
+
 @api.errorhandler
 def default_error_handler(error):
+    """Defines the default errorhandler"""
     message = str(error)
     return {"message": message}, getattr(error, "code", 500)
