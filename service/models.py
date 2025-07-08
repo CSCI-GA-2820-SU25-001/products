@@ -103,10 +103,13 @@ class Product(db.Model):
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
-            raise DataValidationError("Invalid product: missing " + error.args[0]) from error
+            raise DataValidationError(
+                "Invalid product: missing " + error.args[0]
+            ) from error
         except TypeError as error:
             raise DataValidationError(
-                "Invalid product: body of request contained bad or no data " + str(error)
+                "Invalid product: body of request contained bad or no data "
+                + str(error)
             ) from error
         return self
 
@@ -148,7 +151,7 @@ class Product(db.Model):
 
         """
         logger.info("Processing description query for %s ...", description)
-        return cls.query.filter(cls.description == description)
+        return cls.query.filter(cls.description == description).all()
 
     @classmethod
     def find_by_availability(cls, available: bool = True) -> list:

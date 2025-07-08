@@ -259,7 +259,7 @@ class TestModelQueries(TestProduct):
         description = products[0].description
         count = len([product for product in products if product.description == description])
         found = Product.find_by_description(description)
-        self.assertEqual(found.count(), count)
+        self.assertEqual(len(found), count)
         for product in found:
             self.assertEqual(product.description, description)
 

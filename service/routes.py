@@ -22,7 +22,7 @@ and Delete YourResourceModel
 """
 
 import secrets
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
 from flask_restx import Api, Resource, fields, reqparse, abort
 from service.models import Product, DataValidationError
 from service.common import status
@@ -149,34 +149,20 @@ class ProductResource(Resource):
 @api_bp.route("/")
 def index():
     """Returns a simple HTML page with link to API docs"""
-    return (
-        """
-        <html>
-            <head><title>Product API</title></head>
-            <body>
-                <h2>Welcome to the Product API 👋</h2>
-                <p><a href="/apidocs">Click me to view the Swagger Docs </a></p>
-            </body>
-        </html>
-    """,
-        200,
-    )
-
-
-# Utility function if needed elsewhere
-def generate_apikey():
-    """Generates a secure API key"""
-    return secrets.token_hex(16)
+    return current_app.send_static_file("index.html")
 
 
 @api.route("/products", methods=["PUT"])
 class ProductMethodNotAllowed(Resource):
     """Handles invalid PUT requests on the product collection"""
-
     def put(self):
         """Returns 405 Method Not Allowed for PUT on /products"""
         abort(status.HTTP_405_METHOD_NOT_ALLOWED, "Method not allowed")
 
+# Utility function if needed elsewhere
+def generate_apikey():
+    """Generates a secure API key"""
+    return secrets.token_hex(16)
 
 @api.errorhandler
 def default_error_handler(error):
