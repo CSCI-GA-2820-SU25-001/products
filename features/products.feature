@@ -91,3 +91,11 @@ Scenario: Purchase a product
     When I purchase the product named "toothbrush"
     Then I should see the message "Success"
     And I should see "toothbrush" in the "Name" field
+
+Scenario: Search for products by name
+    When I visit the "Home Page"
+    And I set the "Name" to "toothbrush"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "toothbrush" in the results
+    And I should not see "laptop" in the results
