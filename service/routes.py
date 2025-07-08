@@ -88,8 +88,8 @@ class ProductCollection(Resource):
                 status.HTTP_400_BAD_REQUEST,
                 "Invalid value for 'available'. Must be 'true' or 'false'.",
             )
-        if args["price"]:
-            return Product.find_by_price(args["price"])
+        if args["price"] is not None:
+            return [p.serialize() for p in Product.find_by_price(args["price"])]
         return Product.all()
 
     @ns.expect(product_model)
