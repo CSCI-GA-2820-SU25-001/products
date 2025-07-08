@@ -174,6 +174,31 @@ $(function () {
         $("#flash_message").empty();
         clear_form_data()
     });
+    // ****************************************
+    // Purchase a Product
+    // ****************************************
+
+    $("#purchase-btn").click(function () {
+        let product_id = $("#product_id").val();
+
+        $("#flash_message").empty();
+
+        let ajax = $.ajax({
+            type: "PUT",
+            url: `/api/products/${product_id}/purchase`,
+            contentType: "application/json",
+            data: ''
+        });
+
+        ajax.done(function(res){
+            update_form_data(res)
+            flash_message("Success")
+        });
+
+        ajax.fail(function(res){
+            flash_message(res.responseJSON ? res.responseJSON.message : "Server error!")
+        });
+    });
 
     // ****************************************
     // Search for a Product

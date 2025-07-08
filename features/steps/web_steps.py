@@ -26,7 +26,9 @@ For information on Waiting until elements are present in the HTML see:
 """
 import re
 import logging
+import requests
 from typing import Any
+from compare3 import expect
 from behave import when, then  # pylint: disable=no-name-in-module
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
@@ -191,3 +193,28 @@ def step_impl(context: Any, element_name: str, text_string: str) -> None:
     )
     element.clear()
     element.send_keys(text_string)
+
+
+# HTTP Return Codes
+HTTP_200_OK = 200
+HTTP_201_CREATED = 201
+HTTP_204_NO_CONTENT = 204
+
+WAIT_TIMEOUT = 60
+
+
+@when('I purchase the product named "{name}"')
+def step_impl(context, name):
+    """Purchase a product by name"""
+    rest_endpoint = f"{context.base_url}/api/products"
+    # Find the product by name
+    resp = requests.get(rest_endpoint, params={"name": name}, timeout=WAIT_TIMEOUT)
+    expect(resp.status_code).equal_to(HTTP_200_OK)
+    products = resp.json()
+    assert products, f"No product found with name {name}"
+    product_id = products[0]["id"]
+
+    # Call the purchase action
+    purchase_endpoint = f"{rest_endpoint}/{product_id}/purchase"
+    context.resp = requests.put(purchase_endpoint, timeout=WAIT_TIMEOUT)
+    expect(context.resp.status_code).equal_to(HTTP_200_OK)

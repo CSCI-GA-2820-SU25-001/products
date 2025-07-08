@@ -83,3 +83,11 @@ Scenario: Update a Product
     Then I should see the message "Success"
     And I should see "Colgate Brush" in the results
     And I should not see "toothbrush" in the results
+
+Scenario: Purchase a product
+    When I visit the "Home Page"
+    And I set the "Name" to "toothbrush"
+    And I press the "Search" button
+    When I purchase the product named "toothbrush"
+    Then I should see the message "Success"
+    And I should see "toothbrush" in the "Name" field
