@@ -152,12 +152,6 @@ def index():
     return current_app.send_static_file("index.html")
 
 
-# Utility function if needed elsewhere
-def generate_apikey():
-    """Generates a secure API key"""
-    return secrets.token_hex(16)
-
-
 @api.route("/products", methods=["PUT"])
 class ProductMethodNotAllowed(Resource):
     """Handles invalid PUT requests on the product collection"""
@@ -165,3 +159,32 @@ class ProductMethodNotAllowed(Resource):
     def put(self):
         """Returns 405 Method Not Allowed for PUT on /products"""
         abort(status.HTTP_405_METHOD_NOT_ALLOWED, "Method not allowed")
+
+
+# Utility function if needed elsewhere
+def generate_apikey():
+    """Generates a secure API key"""
+    return secrets.token_hex(16)
+
+
+@api.errorhandler
+def default_error_handler(error):
+    """Defines the default errorhandler"""
+    message = str(error)
+    return {"message": message}, getattr(error, "code", 500)
+
+
+@ns.route("/<int:product_id>/purchase")
+@ns.param("product_id", "The product ID")
+class ProductPurchaseResource(Resource):
+    """Handles purchasing products"""
+
+    def put(self, product_id):
+        """Returns 404 Not Found, purchasing invaild products"""
+        product = Product.find(product_id)
+        if not product:
+            api.abort(
+                status.HTTP_404_NOT_FOUND, f"Product with id {product_id} was not found"
+            )
+        # Implement purchase logic here...
+        return product.serialize()
