@@ -22,7 +22,7 @@ and Delete YourResourceModel
 """
 
 import secrets
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
 from flask_restx import Api, Resource, fields, reqparse, abort
 from service.models import Product, DataValidationError
 from service.common import status
@@ -35,26 +35,27 @@ api = Api(
     title="Product Demo REST API Service",
     description="This is a sample Product microservice",
     doc="/apidocs",  # Swagger UI
-    prefix="/api"
+    prefix="/api",
 )
 
 # Authorization config (if needed later)
-authorizations = {
-    "apikey": {"type": "apiKey", "in": "header", "name": "X-Api-Key"}
-}
+authorizations = {"apikey": {"type": "apiKey", "in": "header", "name": "X-Api-Key"}}
 api.authorizations = authorizations
 
 # Namespace for products
 ns = api.namespace("products", description="Product operations")
 
 # Data Model for Swagger
-product_model = api.model("Product", {
-    "id": fields.Integer(readOnly=True),
-    "name": fields.String(required=True, description="Product name"),
-    "description": fields.String(required=False),
-    "price": fields.Float(required=False),
-    "available": fields.Boolean(required=False),
-})
+product_model = api.model(
+    "Product",
+    {
+        "id": fields.Integer(readOnly=True),
+        "name": fields.String(required=True, description="Product name"),
+        "description": fields.String(required=False),
+        "price": fields.Float(required=False),
+        "available": fields.Boolean(required=False),
+    },
+)
 
 # Query parser
 product_args = reqparse.RequestParser()
@@ -67,6 +68,7 @@ product_args.add_argument("price", type=float)
 @ns.route("/")
 class ProductCollection(Resource):
     """Handles collection-level operations for Products"""
+
     @ns.expect(product_args)
     @ns.marshal_list_with(product_model)
     def get(self):
@@ -82,7 +84,10 @@ class ProductCollection(Resource):
                 return [p.serialize() for p in Product.find_by_availability(True)]
             if available_str == "false":
                 return [p.serialize() for p in Product.find_by_availability(False)]
-            abort(status.HTTP_400_BAD_REQUEST, "Invalid value for 'available'. Must be 'true' or 'false'.")
+            abort(
+                status.HTTP_400_BAD_REQUEST,
+                "Invalid value for 'available'. Must be 'true' or 'false'.",
+            )
         if args["price"]:
             return Product.find_by_price(args["price"])
         return Product.all()
@@ -97,19 +102,26 @@ class ProductCollection(Resource):
         except (DataValidationError, KeyError, TypeError) as error:
             abort(status.HTTP_400_BAD_REQUEST, str(error))
         product.create()
-        return product.serialize(), 201, {"Location": api.url_for(ProductResource, product_id=product.id)}
+        return (
+            product.serialize(),
+            201,
+            {"Location": api.url_for(ProductResource, product_id=product.id)},
+        )
 
 
 @ns.route("/<int:product_id>")
 @ns.param("product_id", "The product ID")
 class ProductResource(Resource):
     """Handles item-level operations for Products"""
+
     @ns.marshal_with(product_model)
     def get(self, product_id):
         """Get a product by ID"""
         product = Product.find(product_id)
         if not product:
-            api.abort(status.HTTP_404_NOT_FOUND, f"Product with id {product_id} was not found")
+            api.abort(
+                status.HTTP_404_NOT_FOUND, f"Product with id {product_id} was not found"
+            )
         return product.serialize()
 
     @ns.expect(product_model)
@@ -118,7 +130,9 @@ class ProductResource(Resource):
         """Update a product by ID"""
         product = Product.find(product_id)
         if not product:
-            api.abort(status.HTTP_404_NOT_FOUND, f"Product with id {product_id} not found")
+            api.abort(
+                status.HTTP_404_NOT_FOUND, f"Product with id {product_id} not found"
+            )
         product.deserialize(api.payload)
         product.update()
         return product.serialize()
@@ -135,15 +149,7 @@ class ProductResource(Resource):
 @api_bp.route("/")
 def index():
     """Returns a simple HTML page with link to API docs"""
-    return """
-        <html>
-            <head><title>Product API</title></head>
-            <body>
-                <h2>Welcome to the Product API 👋</h2>
-                <p><a href="/apidocs">Click me to view the Swagger Docs </a></p>
-            </body>
-        </html>
-    """, 200
+    return current_app.send_static_file("index.html")
 
 
 # Utility function if needed elsewhere
@@ -155,6 +161,7 @@ def generate_apikey():
 @api.route("/products", methods=["PUT"])
 class ProductMethodNotAllowed(Resource):
     """Handles invalid PUT requests on the product collection"""
+
     def put(self):
         """Returns 405 Method Not Allowed for PUT on /products"""
         abort(status.HTTP_405_METHOD_NOT_ALLOWED, "Method not allowed")
