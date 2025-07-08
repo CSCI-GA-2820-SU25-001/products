@@ -184,6 +184,18 @@ class TestProduct(TestCase):
         for product in data:
             self.assertEqual(product["available"], False)
 
+    def test_query_by_price(self):
+        """It should Query Products by price"""
+        products = self._create_products(10)
+        price = products[0].price
+        price_count = len([p for p in products if p.price == price])
+        response = self.client.get(BASE_URL, query_string=f"price={price}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), price_count)
+        for product in data:
+            self.assertEqual(product["price"], price)
+
     # ----------------------------------------------------------
     # TEST CREATE
     # ----------------------------------------------------------
