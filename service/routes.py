@@ -108,6 +108,16 @@ class ProductCollection(Resource):
             {"Location": api.url_for(ProductResource, product_id=product.id)},
         )
 
+######################################################################
+# GET HEALTH CHECK
+######################################################################
+
+
+@ns.route("/health")
+class HealthCheck(Resource):
+    def get(self):
+        return {"status": "OK"}, status.HTTP_200_OK
+
 
 @ns.route("/<int:product_id>")
 @ns.param("product_id", "The product ID")
