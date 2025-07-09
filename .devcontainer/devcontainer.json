@@ -65,7 +65,7 @@
 				"redhat.vscode-yaml",
 				"unjinjang.rest-api-client",
 				"ms-azuretools.vscode-docker",
-                "redhat.vscode-openshift-connector",
+				"redhat.vscode-openshift-connector",
 				"inercia.vscode-k3d",
 				"ms-kubernetes-tools.vscode-kubernetes-tools",
 				"streetsidesoftware.code-spell-checker",
@@ -74,13 +74,14 @@
 		}
 	},
 	"postCreateCommand": "bash /app/.devcontainer/scripts/post-install.sh",
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [8080],
-
-	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {}
-	}
+	},
+
+	// 🔽 Add this block to mount ~/.kube into the container
+	"mounts": [
+		"source=${env:HOME}/.kube,target=/home/vscode/.kube,type=bind"
+	]
 }
