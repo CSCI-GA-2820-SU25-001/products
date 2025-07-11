@@ -43,7 +43,7 @@ Scenario: List all products
     Then I should see the message "Success"
     And I should see "toothbrush" in the results
     And I should see "laptop" in the results
-    And I should not see "gum" in the results
+    And I should see "gum" in the results
     And I should see "shampoo" in the results
 
 Scenario: Search for description

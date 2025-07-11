@@ -167,7 +167,7 @@ class Product(db.Model):
         if not isinstance(available, bool):
             raise TypeError("Invalid availability, must be of type boolean")
         logger.info("Processing available query for %s ...", available)
-        return cls.query.filter(cls.available == available).all()
+        return cls.query.filter(cls.available == available)
 
     @classmethod
     def find_by_price(cls, price: float) -> list:
@@ -181,7 +181,7 @@ class Product(db.Model):
 
         """
         logger.info("Processing price query for %s ...", price)
-        return cls.query.filter(cls.price == price).all()
+        return cls.query.filter(cls.price == price)
 
     @classmethod
     def from_args(cls, args) -> list:
