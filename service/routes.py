@@ -78,6 +78,8 @@ class ProductCollection(Resource):
             return Product.find_by_description(args["description"])
         if args["name"]:
             return Product.find_by_name(args["name"])
+        if args["price"] is not None:
+            return [p.serialize() for p in Product.find_by_price(args["price"])]
         if args["available"] is not None:
             available_str = str(request.args.get("available")).lower()
             if available_str == "true":
@@ -88,8 +90,6 @@ class ProductCollection(Resource):
                 status.HTTP_400_BAD_REQUEST,
                 "Invalid value for 'available'. Must be 'true' or 'false'.",
             )
-        if args["price"] is not None:
-            return [p.serialize() for p in Product.find_by_price(args["price"])]
         return Product.all()
 
     @ns.expect(product_model)

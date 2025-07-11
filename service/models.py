@@ -167,7 +167,7 @@ class Product(db.Model):
         if not isinstance(available, bool):
             raise TypeError("Invalid availability, must be of type boolean")
         logger.info("Processing available query for %s ...", available)
-        return cls.query.filter(cls.available == available)
+        return cls.query.filter(cls.available == available).all()
 
     @classmethod
     def find_by_price(cls, price: float) -> list:
@@ -181,4 +181,50 @@ class Product(db.Model):
 
         """
         logger.info("Processing price query for %s ...", price)
-        return cls.query.filter(cls.price == price)
+        return cls.query.filter(cls.price == price).all()
+
+    @classmethod
+    def from_args(cls, args) -> list:
+        """Creates a list of Products from the given arguments
+
+        :param args: the arguments containing Product data
+        :type args: dict
+
+        :return: a list of Products created from the arguments
+        :rtype: list
+
+        """
+        logger.info("Creating Products from args: %s", args)
+        products = []
+        try:
+            product = cls()
+            product.deserialize(args)
+            product.create()
+            products.append(product)
+        except Exception as e:
+            logger.error("Error creating product from args: %s", e)
+            raise DataValidationError(e) from e
+        return products
+
+    @classmethod
+    def find_by_args(cls, args) -> list:
+        """Finds Products based on the given arguments
+
+        :param args: the arguments to filter Products by
+        :type args: dict
+
+        :return: a list of Products that match the given arguments
+        :rtype: list
+
+        """
+        logger.info("Finding Products by args: %s", args)
+        query = cls.query
+        if args.get("name"):
+            query = query.filter(cls.name == args["name"])
+        if args.get("description"):
+            query = query.filter(cls.description == args["description"])
+        if args.get("available") is not None:
+            query = query.filter(cls.available == args["available"])
+        if args.get("price") is not None:
+            query = query.filter(cls.price == args["price"])
+        return query.all()

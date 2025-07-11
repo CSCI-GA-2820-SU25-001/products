@@ -39,15 +39,18 @@ $(function () {
 
         let name = $("#product_name").val();
         let description = $("#product_description").val();
-        let available = $("#product_available").val() == "true";
+        let availableVal = $("#product_available").val();
+        let available = (availableVal === "" ? undefined : availableVal === "true");
         let price = parseFloat($("#product_price").val());
 
         let data = {
             "name": name,
             "description": description,
-            "available": available,
             "price": price,
         };
+        if (available !== undefined) {
+            data["available"] = available;
+        }
 
         $("#flash_message").empty();
         
@@ -78,15 +81,18 @@ $(function () {
         let product_id = $("#product_id").val();
         let name = $("#product_name").val();
         let description = $("#product_description").val();
-        let available = $("#product_available").val() == "true";
+        let availableVal = $("#product_available").val();
+        let available = (availableVal === "" ? undefined : availableVal === "true");
         let price = $("#product_price").val();
 
         let data = {
             "name": name,
             "description": description,
-            "available": available,
             "price": price,
         };
+        if (available !== undefined) {
+            data["available"] = available;
+        }
 
         $("#flash_message").empty();
 
@@ -208,25 +214,33 @@ $(function () {
 
         let name = $("#product_name").val();
         let description = $("#product_description").val();
-        let available = $("#product_available").val() == "true";
+        let available = $("#product_available").val();
+        let price = $("#product_price").val();
 
-        let queryString = ""
+        let queryString = "";
 
         if (name) {
-            queryString += 'name=' + name
+            queryString += 'name=' + encodeURIComponent(name);
         }
         if (description) {
             if (queryString.length > 0) {
-                queryString += '&description=' + description
+                queryString += '&description=' + encodeURIComponent(description);
             } else {
-                queryString += 'description=' + description
+                queryString += 'description=' + encodeURIComponent(description);
             }
         }
-        if (available) {
+        if (available !== "") {
             if (queryString.length > 0) {
-                queryString += '&available=' + available
+                queryString += '&available=' + encodeURIComponent(available);
             } else {
-                queryString += 'available=' + available
+                queryString += 'available=' + encodeURIComponent(available);
+            }
+        }
+        if (price !== "" && !isNaN(price)) {
+            if (queryString.length > 0) {
+                queryString += '&price=' + encodeURIComponent(price);
+            } else {
+                queryString += 'price=' + encodeURIComponent(price);
             }
         }
 
@@ -240,7 +254,6 @@ $(function () {
         })
 
         ajax.done(function(res){
-            //alert(res.toSource())
             $("#search_results").empty();
             let table = '<table class="table table-striped" cellpadding="10">'
             table += '<thead><tr>'

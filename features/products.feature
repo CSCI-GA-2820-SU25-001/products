@@ -99,3 +99,11 @@ Scenario: Search for products by name
     Then I should see the message "Success"
     And I should see "toothbrush" in the results
     And I should not see "laptop" in the results
+
+Scenario: Search for products by price
+    When I visit the "Home Page"
+    And I set the "Price" to "5.43"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "toothbrush" in the results
+    And I should not see "laptop" in the results
