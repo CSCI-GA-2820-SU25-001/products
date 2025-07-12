@@ -43,7 +43,7 @@ Scenario: List all products
     Then I should see the message "Success"
     And I should see "toothbrush" in the results
     And I should see "laptop" in the results
-    And I should not see "gum" in the results
+    And I should see "gum" in the results
     And I should see "shampoo" in the results
 
 Scenario: Search for description
@@ -95,6 +95,14 @@ Scenario: Purchase a product
 Scenario: Search for products by name
     When I visit the "Home Page"
     And I set the "Name" to "toothbrush"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "toothbrush" in the results
+    And I should not see "laptop" in the results
+
+Scenario: Search for products by price
+    When I visit the "Home Page"
+    And I set the "Price" to "5.43"
     And I press the "Search" button
     Then I should see the message "Success"
     And I should see "toothbrush" in the results

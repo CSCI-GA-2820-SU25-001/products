@@ -81,7 +81,9 @@ class TestProduct(TestCase):
         """It should Create a product and add it to the database"""
         products = Product.all()
         self.assertEqual(products, [])
-        product = Product(name="toothbrush", description="toothbrush", available=True, price=10.12)
+        product = Product(
+            name="toothbrush", description="toothbrush", available=True, price=10.12
+        )
         self.assertTrue(product is not None)
         self.assertEqual(product.id, None)
         product.create()
@@ -200,6 +202,74 @@ class TestProduct(TestCase):
         product = Product()
         self.assertRaises(DataValidationError, product.deserialize, data)
 
+    def test_find_by_args(self):
+        """It should find Products by multiple arguments using find_by_args"""
+        # Create several products
+        p1 = Product(name="Widget", description="A widget", available=True, price=9.99)
+        p2 = Product(
+            name="Gadget", description="A gadget", available=False, price=19.99
+        )
+        p3 = Product(name="Widget", description="A widget", available=True, price=9.99)
+        for p in [p1, p2, p3]:
+            p.create()
+        # Find by name
+        results = Product.find_by_args({"name": "Widget"})
+        self.assertEqual(len(results), 2)
+        for product in results:
+            self.assertEqual(product.name, "Widget")
+        # Find by name and price
+        results = Product.find_by_args({"name": "Widget", "price": 9.99})
+        self.assertEqual(len(results), 2)
+        for product in results:
+            self.assertEqual(product.name, "Widget")
+            self.assertEqual(product.price, 9.99)
+        # Find by name, price, and available
+        results = Product.find_by_args(
+            {"name": "Widget", "price": 9.99, "available": True}
+        )
+        self.assertEqual(len(results), 2)
+        for product in results:
+            self.assertEqual(product.name, "Widget")
+            self.assertEqual(product.price, 9.99)
+            self.assertTrue(product.available)
+        # Find by description (should match both Widgets)
+        results = Product.find_by_args({"description": "A widget"})
+        self.assertEqual(len(results), 2)
+        for product in results:
+            self.assertEqual(product.description, "A widget")
+        # Find by available (should match only one Gadget)
+        results = Product.find_by_args({"available": False})
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].name, "Gadget")
+        # Find by price (should match both Widgets)
+        results = Product.find_by_args({"price": 9.99})
+        self.assertEqual(len(results), 2)
+        for product in results:
+            self.assertEqual(product.price, 9.99)
+
+    def test_from_args(self):
+        """It should create a Product from a dictionary using from_args"""
+        args = {
+            "name": "TestProduct",
+            "description": "A test product",
+            "available": True,
+            "price": 42.0,
+        }
+        products = Product.from_args(args)
+        self.assertEqual(len(products), 1)
+        product = products[0]
+        self.assertEqual(product.name, "TestProduct")
+        self.assertEqual(product.description, "A test product")
+        self.assertTrue(product.available)
+        self.assertEqual(product.price, 42.0)
+        # Ensure it was actually created in the DB
+        found = Product.find(product.id)
+        self.assertIsNotNone(found)
+        self.assertEqual(found.name, "TestProduct")
+        self.assertEqual(found.description, "A test product")
+        self.assertTrue(found.available)
+        self.assertEqual(found.price, 42.0)
+
 
 ######################################################################
 #  T E S T   E X C E P T I O N   H A N D L E R S
@@ -257,7 +327,9 @@ class TestModelQueries(TestProduct):
         for product in products:
             product.create()
         description = products[0].description
-        count = len([product for product in products if product.description == description])
+        count = len(
+            [product for product in products if product.description == description]
+        )
         found = Product.find_by_description(description)
         self.assertEqual(len(found), count)
         for product in found:
