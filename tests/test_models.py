@@ -22,6 +22,7 @@ Test cases for Product Model
 import os
 import logging
 from unittest import TestCase
+from decimal import Decimal
 from unittest.mock import patch
 from wsgi import app
 from service.models import Product, DataValidationError, db
@@ -153,6 +154,14 @@ class TestProduct(TestCase):
         # See if we get back 5 products
         products = Product.all()
         self.assertEqual(len(products), 5)
+
+    def test_update_product_with_negative_price(self):
+        """It should not update a Product with a negative price"""
+        product = ProductFactory()
+        product.create()
+        logging.debug(product)
+        product.price = -10
+        self.assertRaises(DataValidationError, product.update)
 
     def test_serialize_a_product(self):
         """It should serialize a Product"""

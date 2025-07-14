@@ -244,6 +244,22 @@ class TestProduct(TestCase):
         self.assertAlmostEqual(float(updated_product["price"]), 19.99, places=2)
         self.assertEqual(updated_product["available"], False)
 
+    def test_update_product_with_negative_price(self):
+        """It should not Update a Product with a negative price"""
+        # create a product to update
+        test_product = ProductFactory()
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # update the product with a negative price
+        new_product = response.get_json()
+        logging.debug(new_product)
+        new_product["price"] = "-10.00"
+        response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.get_json()
+        self.assertIn("Price must be a positive number", data["message"])
+
     # ----------------------------------------------------------
     # TEST DELETE
     # ----------------------------------------------------------
