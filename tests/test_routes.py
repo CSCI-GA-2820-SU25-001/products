@@ -251,12 +251,12 @@ class TestProduct(TestCase):
         response = self.client.post(BASE_URL, json=test_product.serialize())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # update the product with a negative price
+        # attempt to update with a negative price
         new_product = response.get_json()
-        logging.debug(new_product)
-        new_product["price"] = "-10.00"
+        new_product["price"] = -10.00  # use a number, not a string
         response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
         data = response.get_json()
         self.assertIn("Price must be a positive number", data["message"])
 

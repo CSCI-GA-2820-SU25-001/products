@@ -22,7 +22,6 @@ Test cases for Product Model
 import os
 import logging
 from unittest import TestCase
-from decimal import Decimal
 from unittest.mock import patch
 from wsgi import app
 from service.models import Product, DataValidationError, db
