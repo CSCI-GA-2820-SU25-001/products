@@ -7,6 +7,7 @@ All of the models are stored in this module
 import logging
 from flask_sqlalchemy import SQLAlchemy
 
+
 logger = logging.getLogger("flask.app")
 
 # Create the SQLAlchemy object to be initialized later in init_db()
@@ -49,12 +50,13 @@ class Product(db.Model):
             raise DataValidationError(e) from e
 
     def update(self):
-        """
-        Updates a Product to the database
-        """
+        """Updates a Product to the database"""
         logger.info("Saving %s", self.name)
+        print(self.price, "I am here!!!!")
         if not self.id:
             raise DataValidationError("Update called with empty ID field")
+        if self.price is None or float(self.price) < float(0.00):
+            raise DataValidationError("Price must be a positive number")
         try:
             db.session.commit()
         except Exception as e:
