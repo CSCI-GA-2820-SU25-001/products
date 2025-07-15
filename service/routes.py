@@ -115,7 +115,9 @@ class ProductCollection(Resource):
 
 @ns.route("/health")
 class HealthCheck(Resource):
+    """Health Check Resource"""
     def get(self):
+        """Returns a simple health check"""
         return {"status": "OK"}, status.HTTP_200_OK
 
 
