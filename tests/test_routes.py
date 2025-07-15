@@ -120,7 +120,7 @@ class TestProduct(TestCase):
 
     def test_health(self):
         """It should get the health endpoint"""
-        resp = self.client.get("/health")
+        resp = self.client.get("api/products/health")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["status"], "OK")
