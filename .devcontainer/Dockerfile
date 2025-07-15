@@ -11,3 +11,9 @@ RUN sudo python -m pip install --upgrade pip pipenv && \
 # Install user mode tools
 COPY .devcontainer/scripts/install-tools.sh /tmp/
 RUN cd /tmp && bash ./install-tools.sh
+
+
+COPY wsgi.py .
+COPY service ./service
+
+CMD ["gunicorn", "wsgi:app", "-b", "0.0.0.0:8080"]
