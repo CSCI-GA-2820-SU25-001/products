@@ -1,10 +1,12 @@
 # These can be overidden with env vars.
 REGISTRY ?= cluster-registry:5000
-IMAGE_NAME ?= petshop
-IMAGE_TAG ?= 1.0
+IMAGE_NAME ?= products
+IMAGE_TAG ?= latest
 IMAGE ?= $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 PLATFORM ?= "linux/amd64,linux/arm64"
 CLUSTER ?= nyu-devops
+
+export KUBECONFIG := /tmp/kubeconfig/config
 
 .SILENT:
 
@@ -57,6 +59,8 @@ secret: ## Generate a secret hex key
 cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
 	$(info Creating Kubernetes cluster $(CLUSTER) with a registry and 2 worker nodes...)
 	k3d cluster create $(CLUSTER) --agents 2 --registry-create cluster-registry:0.0.0.0:5000 --port '8080:80@loadbalancer'
+	mkdir -p /tmp/kubeconfig
+	k3d kubeconfig get $(CLUSTER) > /tmp/kubeconfig/config
 
 .PHONY: cluster-rm
 cluster-rm: ## Remove a K3D Kubernetes cluster
@@ -84,17 +88,17 @@ init:	## Creates the buildx instance
 .PHONY: build
 build:	## Build the project container image for local platform
 	$(info Building $(IMAGE)...)
-	docker build --rm --pull --tag $(IMAGE) .
+	docker build --rm --pull -f .devcontainer/Dockerfile --tag $(IMAGE) .
 
 .PHONY: push
 push:	## Push the image to the container registry
-	$(info Pushing $(IMAGE)...)
-	docker push $(IMAGE)
+	$(info Pushing $(IMAGE) into cluster $(CLUSTER)...)
+	k3d image import $(IMAGE) -c $(CLUSTER)
 
 .PHONY: buildx
 buildx:	## Build multi-platform image with buildx
 	$(info Building multi-platform image $(IMAGE) for $(PLATFORM)...)
-	docker buildx build --file Dockerfile --pull --platform=$(PLATFORM) --tag $(IMAGE) --push .
+	docker buildx build --file .devcontainer/Dockerfile --pull --platform=$(PLATFORM) --tag $(IMAGE) --push .
 
 .PHONY: remove
 remove:	## Stop and remove the buildx builder
