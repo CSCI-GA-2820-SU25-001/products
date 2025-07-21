@@ -133,8 +133,13 @@ class ProductResource(Resource):
             api.abort(
                 status.HTTP_404_NOT_FOUND, f"Product with id {product_id} not found"
             )
-        product.deserialize(api.payload)
-        product.update()
+
+        try:
+            product.deserialize(api.payload)
+            product.update()
+        except DataValidationError as err:
+            api.abort(status.HTTP_400_BAD_REQUEST, str(err))
+
         return product.serialize()
 
     def delete(self, product_id):
