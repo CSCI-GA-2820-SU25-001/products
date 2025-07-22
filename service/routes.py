@@ -104,7 +104,7 @@ class ProductCollection(Resource):
         product.create()
         return (
             product.serialize(),
-            201,
+            status.HTTP_201_CREATED,
             {"Location": api.url_for(ProductResource, product_id=product.id)},
         )
 
@@ -183,7 +183,12 @@ def generate_apikey():
 def default_error_handler(error):
     """Defines the default errorhandler"""
     message = str(error)
-    return {"message": message}, getattr(error, "code", 500)
+    code = getattr(error, "code", 500)
+    try:
+        code = int(code)
+    except ValueError:
+        code = 500
+    return {"message": message}, code
 
 
 @ns.route("/<int:product_id>/purchase")

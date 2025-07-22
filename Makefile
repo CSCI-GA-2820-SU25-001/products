@@ -6,7 +6,6 @@ IMAGE ?= $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 PLATFORM ?= "linux/amd64,linux/arm64"
 CLUSTER ?= nyu-devops
 
-export KUBECONFIG := /tmp/kubeconfig/config
 
 .SILENT:
 
@@ -59,13 +58,11 @@ secret: ## Generate a secret hex key
 cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
 	$(info Creating Kubernetes cluster $(CLUSTER) with a registry and 2 worker nodes...)
 	k3d cluster create $(CLUSTER) --agents 2 --registry-create cluster-registry:0.0.0.0:5000 --port '8080:80@loadbalancer'
-	mkdir -p /tmp/kubeconfig
-	k3d kubeconfig get $(CLUSTER) > /tmp/kubeconfig/config
 
 .PHONY: cluster-rm
 cluster-rm: ## Remove a K3D Kubernetes cluster
 	$(info Removing Kubernetes cluster...)
-	k3d cluster delete nyu-devops
+	k3d cluster delete $(CLUSTER)
 
 .PHONY: deploy
 deploy: ## Deploy the service on local Kubernetes
@@ -93,7 +90,7 @@ build:	## Build the project container image for local platform
 .PHONY: push
 push:	## Push the image to the container registry
 	$(info Pushing $(IMAGE) into cluster $(CLUSTER)...)
-	k3d image import $(IMAGE) -c $(CLUSTER)
+	docker push $(IMAGE)
 
 .PHONY: buildx
 buildx:	## Build multi-platform image with buildx

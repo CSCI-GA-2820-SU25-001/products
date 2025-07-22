@@ -2,12 +2,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: products
+  labels:
+    app: products
 spec:
-  type: ClusterIP
   selector:
     app: products
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
   ports:
-    - name: http
+    - name: 8080-tcp
       protocol: TCP
       port: 8080
       targetPort: 8080
