@@ -24,6 +24,7 @@ from unittest import TestCase
 from unittest.mock import patch, MagicMock
 from click.testing import CliRunner
 from service.common.cli_commands import init_cli
+from service import create_app
 
 # pylint: disable=unused-import
 from wsgi import app  # noqa: F401
