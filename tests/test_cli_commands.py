@@ -48,5 +48,5 @@ class TestFlaskCLI(TestCase):
 
     def test_create_app_triggers_logging_and_cli(self):
         """Test that create_app triggers logging and CLI registration."""
-        app = create_flask_app()
-        assert app is not None
+        test_app = create_flask_app()
+        assert test_app is not None
