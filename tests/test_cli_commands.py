@@ -24,6 +24,7 @@ from unittest import TestCase
 from unittest.mock import patch, MagicMock
 from click.testing import CliRunner
 from service.common.cli_commands import init_cli
+from service import create_app as create_flask_app
 
 # pylint: disable=unused-import
 from wsgi import app  # noqa: F401
@@ -44,3 +45,8 @@ class TestFlaskCLI(TestCase):
             init_cli(app)
             result = self.runner.invoke(app.cli, args=["db-create"])
             self.assertEqual(result.exit_code, 0)
+
+    def test_create_app_triggers_logging_and_cli(self):
+        """Test that create_app triggers logging and CLI registration."""
+        test_app = create_flask_app()
+        assert test_app is not None

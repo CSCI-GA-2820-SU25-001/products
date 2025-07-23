@@ -49,6 +49,7 @@ def create_app():
             from service.models import db
 
             db.init_app(app)
+            db.create_all()
 
         except Exception as error:  # pylint: disable=broad-except
             app.logger.critical("%s: Cannot continue", error)
