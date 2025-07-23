@@ -58,6 +58,10 @@ secret: ## Generate a secret hex key
 cluster: ## Create a K3D Kubernetes cluster with load balancer and registry
 	$(info Creating Kubernetes cluster $(CLUSTER) with a registry and 2 worker nodes...)
 	k3d cluster create $(CLUSTER) --agents 2 --registry-create cluster-registry:0.0.0.0:5000 --port '8080:80@loadbalancer'
+	$(info Ensuring /etc/hosts contains cluster-registry...)
+	@grep -q 'cluster-registry' /etc/hosts || echo "127.0.0.1 cluster-registry" | sudo tee -a /etc/hosts
+	$(info Writing KUBECONFIG for cluster $(CLUSTER)...)
+	@export KUBECONFIG=$$(k3d kubeconfig write $(CLUSTER))
 
 .PHONY: cluster-rm
 cluster-rm: ## Remove a K3D Kubernetes cluster
