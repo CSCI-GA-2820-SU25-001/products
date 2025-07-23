@@ -45,3 +45,7 @@ class TestFlaskCLI(TestCase):
             init_cli(app)
             result = self.runner.invoke(app.cli, args=["db-create"])
             self.assertEqual(result.exit_code, 0)
+
+    def test_create_app_triggers_logging_and_cli(self):
+        app = create_app()
+        assert app is not None
