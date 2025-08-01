@@ -1,0 +1,9 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: echo-pipeline
+spec:
+  tasks:
+    - name: run-echo-task
+      taskRef:
+        name: echo-task
