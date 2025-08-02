@@ -1,9 +1,62 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: echo-pipeline
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"tekton.dev/v1","kind":"Pipeline","metadata":{"annotations":{},"creationTimestamp":"2025-08-01T20:15:56Z","generation":4,"name":"cd-pipeline","namespace":"aa1020-dev","resourceVersion":"2178653866","uid":"25c3d020-6666-4bf4-b845-22c439002a1b"},"spec":{"params":[{"description":"URL to git repo","name":"GIT_REPO","type":"string"},{"default":"master","description":"Reference to branch","name":"GIT_REF","type":"string"}],"tasks":[{"name":"git-clone-1-19-0","params":[{"name":"CRT_FILENAME","value":"ca-bundle.crt"},{"name":"HTTP_PROXY","value":""},{"name":"HTTPS_PROXY","value":""},{"name":"NO_PROXY","value":""},{"name":"SUBDIRECTORY","value":""},{"name":"USER_HOME","value":"/home/git"},{"name":"DELETE_EXISTING","value":"true"},{"name":"VERBOSE","value":"false"},{"name":"SSL_VERIFY","value":"true"},{"name":"url","value":"https://github.com/CSCI-GA-2820-SU25-001/products"},{"name":"REVISION","value":"$(params.GIT_REF)"},{"name":"REFSPEC","value":""},{"name":"SUBMODULES","value":"true"},{"name":"DEPTH","value":"1"},{"name":"SPARSE_CHECKOUT_DIRECTORIES","value":""}],"taskRef":{"kind":"Task","name":"git-clone"},"workspaces":[{"name":"output","workspace":"pipeline-workspace"}]}],"workspaces":[{"name":"pipeline-workspace"}]}}
+  creationTimestamp: "2025-08-01T20:15:56Z"
+  generation: 5
+  name: cd-pipeline
+  namespace: aa1020-dev
+  resourceVersion: "2178702916"
+  uid: 25c3d020-6666-4bf4-b845-22c439002a1b
 spec:
+  params:
+  - description: URL to git repo
+    name: GIT_REPO
+    type: string
+  - default: master
+    description: Reference to branch
+    name: GIT_REF
+    type: string
   tasks:
-    - name: run-echo-task
-      taskRef:
-        name: echo-task
+  - name: git-clone-1-19-0
+    params:
+    - name: CRT_FILENAME
+      value: ca-bundle.crt
+    - name: HTTP_PROXY
+      value: ""
+    - name: HTTPS_PROXY
+      value: ""
+    - name: NO_PROXY
+      value: ""
+    - name: SUBDIRECTORY
+      value: ""
+    - name: USER_HOME
+      value: /home/git
+    - name: DELETE_EXISTING
+      value: "true"
+    - name: VERBOSE
+      value: "false"
+    - name: SSL_VERIFY
+      value: "true"
+    - name: url
+      value: https://github.com/CSCI-GA-2820-SU25-001/products
+    - name: REVISION
+      value: $(params.GIT_REF)
+    - name: REFSPEC
+      value: ""
+    - name: SUBMODULES
+      value: "true"
+    - name: DEPTH
+      value: "1"
+    - name: SPARSE_CHECKOUT_DIRECTORIES
+      value: ""
+    taskRef:
+      kind: Task
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: pipeline-workspace
+  workspaces:
+  - name: pipeline-workspace
