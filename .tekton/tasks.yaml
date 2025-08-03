@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  annotations:
+    openshift.io/installed-from: ArtifactHub
+    openshift.io/sem-version: 0.3.0
+    tekton.dev/categories: Code Quality
+    tekton.dev/displayName: pylint
+    tekton.dev/pipelines.minVersion: 0.17.0
+    tekton.dev/platforms: linux/amd64
+    tekton.dev/tags: python, pylint
+  creationTimestamp: "2025-08-03T01:23:17Z"
+  generation: 2
+  labels:
+    app.kubernetes.io/version: "0.3"
+  name: pylint
+  namespace: aa1020-dev
+  resourceVersion: "2181687215"
+  uid: 80fe3d04-9e46-4e3c-8d9e-80125510d704
+spec:
+  description: This task will run pylint on the provided input using pipenv.
+  params:
+  - default: .
+    description: The path to the module which should be analysed by pylint
+    name: path
+    type: string
+  steps:
+  - computeResources: {}
+    image: python:3.9
+    name: lint
+    script: |
+      pip install pipenv
+      pipenv install --dev
+      pipenv run pylint $(params.path)
+    workingDir: $(workspaces.source.path)
+  workspaces:
+  - name: source
+  - description: The workspace consisting of the custom pip settings.
+    name: pip-conf
+    optional: true
