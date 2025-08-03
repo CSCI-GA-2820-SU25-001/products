@@ -5,10 +5,10 @@ metadata:
 spec:
   description: This task will run pylint on the provided input using pipenv.
   params:
-    - default: "service"
-      description: The path to the module which should be analysed by pylint
-      name: path
+    - name: path
       type: string
+      description: The path to the module which should be analysed by pylint
+      default: "service"
   workspaces:
     - name: source
   steps:
@@ -20,38 +20,66 @@ spec:
         pipenv install --dev
         pipenv run pylint $(params.path)
 ---
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: pytest
 spec:
+  description: >-
+    This task can be used to perform unit tests with pytest.
+    It supports both requirements.txt, Pipfile, & poetry.lock files.
+
+    It also has the ability to create an environment variable
+    that is sourced from a Secret. This allows you to define
+    credentials that can be used to connect to a test database.
+  params:
+    - name: pytest-args
+      type: array
+      description: The arguments to pass to the pytest CLI.
+      default: []
+    - name: secret-name
+      type: string
+      description: The name of the secret containing a database_uri key
+      default: "postgres-creds"
+    - name: secret-key
+      type: string
+      description: The name of the key that contains the database uri
+      default: "database_uri"
   workspaces:
     - name: source
   steps:
     - name: pytest
-      image: python:3.11-slim
+      image: quay.io/rofrano/python:3.11-slim
       workingDir: $(workspaces.source.path)
+      env:
+        - name: DATABASE_URI
+          valueFrom:
+            secretKeyRef:
+              name: $(params.secret-name)
+              key: $(params.secret-key)
       script: |
         #!/bin/bash
-        set -ex
-        pip install pipenv
-        pipenv install --dev
-        pipenv run pytest tests/
-      env:
-        - name: DATABASE_URL
-          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres/$(POSTGRES_DB)"
-        - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: postgres-creds
-              key: postgres_user
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: postgres-creds
-              key: postgres_password
-        - name: POSTGRES_DB
-          valueFrom:
-            configMapKeyRef:
-              name: postgres-config
-              key: postgres_db
+        set -e
+        export PATH=$PATH:$HOME/.local/bin:
+
+        echo "***** Installing dependencies *****"
+        if [ -e "poetry.lock" ]; then
+          echo "Found poetry.lock file: using poetry ..."
+          python -m pip install --upgrade pip poetry
+          poetry config virtualenvs.create false
+          poetry install
+        elif [ -e "Pipfile" ]; then
+          echo "Found Pipfile file: using pipenv ..."
+          python -m pip install --upgrade pip pipenv
+          pipenv install --system --dev
+        elif [ -e "requirements.txt" ]; then
+          python -m pip install --user -r requirements.txt
+        fi
+
+        python -m pip install pytest
+
+        echo "***** Running Tests *****"
+        pytest --version
+        pytest "$@"
+      args:
+        - "$(params.pytest-args[*])"

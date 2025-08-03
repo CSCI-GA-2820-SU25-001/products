@@ -4,4 +4,4 @@ metadata:
   name: postgres-config
 data:
   postgres_user: postgres
-  postgres_db: products 
+  postgres_db: products
