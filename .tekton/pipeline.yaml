@@ -1,78 +1,51 @@
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"tekton.dev/v1","kind":"Pipeline","metadata":{"annotations":{},"name":"cd-pipeline","namespace":"aa1020-dev"},"spec":{"params":[{"description":"URL to git repo","name":"GIT_REPO","type":"string"},{"default":"master","description":"Reference to branch","name":"GIT_REF","type":"string"}],"tasks":[{"name":"git-clone","params":[{"name":"url","value":"$(params.GIT_REPO)"},{"name":"REVISION","value":"$(params.GIT_REF)"}],"taskRef":{"kind":"Task","name":"git-clone"},"workspaces":[{"name":"output","workspace":"pipeline-workspace"}]},{"name":"pylint","params":[{"name":"path","value":"service"}],"runAfter":["git-clone"],"taskRef":{"kind":"Task","name":"pylint"},"workspaces":[{"name":"source","workspace":"pipeline-workspace"}]},{"name":"pytest","params":[{"name":"secret-name","value":"postgres-creds"},{"name":"secret-key","value":"database_uri"}],"runAfter":["git-clone"],"taskRef":{"kind":"Task","name":"pytest"},"workspaces":[{"name":"source","workspace":"pipeline-workspace"}]}],"workspaces":[{"name":"pipeline-workspace"}]}}
-  creationTimestamp: '2025-08-03T04:07:28Z'
-  generation: 1
-  managedFields:
-    - apiVersion: tekton.dev/v1
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:metadata':
-          'f:annotations':
-            .: {}
-            'f:kubectl.kubernetes.io/last-applied-configuration': {}
-        'f:spec':
-          .: {}
-          'f:params': {}
-          'f:tasks': {}
-          'f:workspaces': {}
-      manager: kubectl-client-side-apply
-      operation: Update
-      time: '2025-08-03T04:07:28Z'
   name: cd-pipeline
-  namespace: aa1020-dev
-  resourceVersion: '2184149179'
-  uid: c843d72a-5214-4daf-9423-679afe1628dc
 spec:
   params:
-    - description: URL to git repo
-      name: GIT_REPO
+    - name: GIT_REPO
+      description: URL to git repo
       type: string
-    - default: master
+    - name: GIT_REF
       description: Reference to branch
-      name: GIT_REF
       type: string
+      default: "fix-db-bug-openshift" # This default is correct
+  workspaces:
+    - name: pipeline-workspace
   tasks:
     - name: git-clone
-      params:
-        - name: url
-          value: $(params.GIT_REPO)
-        - name: REVISION
-          value: $(params.GIT_REF)
       taskRef:
-        kind: Task
         name: git-clone
+        kind: Task
       workspaces:
         - name: output
           workspace: pipeline-workspace
+      params:
+        - name: url
+          value: $(params.GIT_REPO)
+        - name: revision # Note: The git-clone task uses 'revision', not 'REVISION'
+          value: $(params.GIT_REF)
     - name: pylint
+      taskRef:
+        name: pylint
+        kind: Task
+      runAfter:
+        - git-clone
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
       params:
         - name: path
           value: service
-      runAfter:
-        - git-clone
-      taskRef:
-        kind: Task
-        name: pylint
-      workspaces:
-        - name: source
-          workspace: pipeline-workspace
+    # --- THIS IS THE FIX ---
+    # The pytest task does not need any params. They have been removed.
     - name: pytest
-      params:
-        - name: secret-name
-          value: postgres-creds
-        - name: secret-key
-          value: database_uri
+      taskRef:
+        name: pytest
+        kind: Task
       runAfter:
         - git-clone
-      taskRef:
-        kind: Task
-        name: pytest
       workspaces:
         - name: source
           workspace: pipeline-workspace
-  workspaces:
-    - name: pipeline-workspace

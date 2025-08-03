@@ -1,115 +1,57 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"tekton.dev/v1","kind":"Task","metadata":{"annotations":{},"name":"pylint","namespace":"aa1020-dev"},"spec":{"description":"This task will run pylint on the provided input using pipenv.","params":[{"default":"service","description":"The path to the module which should be analysed by pylint","name":"path","type":"string"}],"steps":[{"image":"python:3.11-slim","name":"lint","script":"pip install pipenv\npipenv install --dev\npipenv run pylint $(params.path)\n","workingDir":"$(workspaces.source.path)"}],"workspaces":[{"name":"source"}]}}
-  creationTimestamp: '2025-08-03T16:50:40Z'
-  generation: 1
-  managedFields:
-    - apiVersion: tekton.dev/v1
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:metadata':
-          'f:annotations':
-            .: {}
-            'f:kubectl.kubernetes.io/last-applied-configuration': {}
-        'f:spec':
-          .: {}
-          'f:description': {}
-          'f:params': {}
-          'f:steps': {}
-          'f:workspaces': {}
-      manager: kubectl-client-side-apply
-      operation: Update
-      time: '2025-08-03T16:50:40Z'
   name: pylint
-  namespace: aa1020-dev
-  resourceVersion: '2197523243'
-  uid: a2fb2301-d9d8-4645-ac5d-1881923298b5
 spec:
   description: This task will run pylint on the provided input using pipenv.
   params:
-    - default: service
+    - default: "service"
       description: The path to the module which should be analysed by pylint
       name: path
       type: string
+  workspaces:
+    - name: source
   steps:
-    - computeResources: {}
-      image: 'python:3.11-slim'
-      name: lint
+    - name: lint
+      image: python:3.11-slim
+      workingDir: $(workspaces.source.path)
       script: |
         pip install pipenv
         pipenv install --dev
         pipenv run pylint $(params.path)
-      workingDir: $(workspaces.source.path)
-  workspaces:
-    - name: source
-
 ---
-
-apiVersion: tekton.dev/v1
+apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{},"name":"pytest","namespace":"aa1020-dev"},"spec":{"steps":[{"env":[{"name":"DATABASE_URL","value":"postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres/$(POSTGRES_DB)"},{"name":"POSTGRES_USER","valueFrom":{"secretKeyRef":{"key":"postgres_user","name":"postgres-creds"}}},{"name":"POSTGRES_PASSWORD","valueFrom":{"secretKeyRef":{"key":"postgres_password","name":"postgres-creds"}}},{"name":"POSTGRES_DB","valueFrom":{"configMapKeyRef":{"key":"postgres_db","name":"postgres-config"}}}],"image":"python:3.11-slim","name":"pytest","script":"#!/bin/bash\nset -ex\n\n# Install dependencies from the project root where Pipfile is located\npip install pipenv\npipenv install --dev\n\n# --- THIS IS THE FIX ---\n# Run pytest from the root and explicitly point it to the 'tests' directory.\n# This allows it to discover the tests and measure coverage on the 'service' module.\npipenv run pytest tests/\n","workingDir":"$(workspaces.source.path)"}],"workspaces":[{"name":"source"}]}}
-  creationTimestamp: '2025-08-03T16:50:40Z'
-  generation: 1
-  managedFields:
-    - apiVersion: tekton.dev/v1beta1
-      fieldsType: FieldsV1
-      fieldsV1:
-        'f:metadata':
-          'f:annotations':
-            .: {}
-            'f:kubectl.kubernetes.io/last-applied-configuration': {}
-        'f:spec':
-          .: {}
-          'f:steps': {}
-          'f:workspaces': {}
-      manager: kubectl-client-side-apply
-      operation: Update
-      time: '2025-08-03T16:50:40Z'
   name: pytest
-  namespace: aa1020-dev
-  resourceVersion: '2197523260'
-  uid: 0c4367e0-587f-44fd-bb92-9e6c9b3aa93f
 spec:
+  workspaces:
+    - name: source
   steps:
-    - computeResources: {}
-      env:
-        - name: DATABASE_URL
-          value: 'postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres/$(POSTGRES_DB)'
-        - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              key: postgres_user
-              name: postgres-creds
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: postgres_password
-              name: postgres-creds
-        - name: POSTGRES_DB
-          valueFrom:
-            configMapKeyRef:
-              key: postgres_db
-              name: postgres-config
-      image: 'python:3.11-slim'
-      name: pytest
+    - name: pytest
+      image: python:3.11-slim
+      workingDir: $(workspaces.source.path)
       script: |
         #!/bin/bash
         set -ex
-
-        # Install dependencies from the project root where Pipfile is located
         pip install pipenv
         pipenv install --dev
-
-        # --- THIS IS THE FIX ---
-        # Run pytest from the root and explicitly point it to the 'tests' directory.
-        # This allows it to discover the tests and measure coverage on the 'service' module.
         pipenv run pytest tests/
-      workingDir: $(workspaces.source.path)
-  workspaces:
-    - name: source
+      env:
+        - name: DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres/$(POSTGRES_DB)"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-creds
+              key: postgres_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-creds
+              key: postgres_password
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: postgres_db
