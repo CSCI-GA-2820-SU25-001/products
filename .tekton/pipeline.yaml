@@ -7,7 +7,6 @@ metadata:
   creationTimestamp: "2025-08-01T20:15:56Z"
   generation: 5
   name: cd-pipeline
-  namespace: aa1020-dev
   resourceVersion: "2178702916"
   uid: 25c3d020-6666-4bf4-b845-22c439002a1b
 spec:
