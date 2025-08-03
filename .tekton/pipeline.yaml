@@ -3,79 +3,76 @@ kind: Pipeline
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"tekton.dev/v1","kind":"Pipeline","metadata":{"annotations":{},"creationTimestamp":"2025-08-01T20:15:56Z","generation":4,"name":"cd-pipeline","namespace":"aa1020-dev","resourceVersion":"2178653866","uid":"25c3d020-6666-4bf4-b845-22c439002a1b"},"spec":{"params":[{"description":"URL to git repo","name":"GIT_REPO","type":"string"},{"default":"master","description":"Reference to branch","name":"GIT_REF","type":"string"}],"tasks":[{"name":"git-clone-1-19-0","params":[{"name":"CRT_FILENAME","value":"ca-bundle.crt"},{"name":"HTTP_PROXY","value":""},{"name":"HTTPS_PROXY","value":""},{"name":"NO_PROXY","value":""},{"name":"SUBDIRECTORY","value":""},{"name":"USER_HOME","value":"/home/git"},{"name":"DELETE_EXISTING","value":"true"},{"name":"VERBOSE","value":"false"},{"name":"SSL_VERIFY","value":"true"},{"name":"url","value":"https://github.com/CSCI-GA-2820-SU25-001/products"},{"name":"REVISION","value":"$(params.GIT_REF)"},{"name":"REFSPEC","value":""},{"name":"SUBMODULES","value":"true"},{"name":"DEPTH","value":"1"},{"name":"SPARSE_CHECKOUT_DIRECTORIES","value":""}],"taskRef":{"kind":"Task","name":"git-clone"},"workspaces":[{"name":"output","workspace":"pipeline-workspace"}]}],"workspaces":[{"name":"pipeline-workspace"}]}}
-  creationTimestamp: "2025-08-01T20:15:56Z"
-  generation: 8
+      {"apiVersion":"tekton.dev/v1","kind":"Pipeline","metadata":{"annotations":{},"name":"cd-pipeline","namespace":"aa1020-dev"},"spec":{"params":[{"description":"URL to git repo","name":"GIT_REPO","type":"string"},{"default":"master","description":"Reference to branch","name":"GIT_REF","type":"string"}],"tasks":[{"name":"git-clone","params":[{"name":"url","value":"$(params.GIT_REPO)"},{"name":"REVISION","value":"$(params.GIT_REF)"}],"taskRef":{"kind":"Task","name":"git-clone"},"workspaces":[{"name":"output","workspace":"pipeline-workspace"}]},{"name":"pylint","params":[{"name":"path","value":"service"}],"runAfter":["git-clone"],"taskRef":{"kind":"Task","name":"pylint"},"workspaces":[{"name":"source","workspace":"pipeline-workspace"}]},{"name":"pytest","params":[{"name":"secret-name","value":"postgres-creds"},{"name":"secret-key","value":"database_uri"}],"runAfter":["git-clone"],"taskRef":{"kind":"Task","name":"pytest"},"workspaces":[{"name":"source","workspace":"pipeline-workspace"}]}],"workspaces":[{"name":"pipeline-workspace"}]}}
+  creationTimestamp: '2025-08-03T04:07:28Z'
+  generation: 1
+  managedFields:
+    - apiVersion: tekton.dev/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+        'f:spec':
+          .: {}
+          'f:params': {}
+          'f:tasks': {}
+          'f:workspaces': {}
+      manager: kubectl-client-side-apply
+      operation: Update
+      time: '2025-08-03T04:07:28Z'
   name: cd-pipeline
-  resourceVersion: "2181459607"
-  uid: 25c3d020-6666-4bf4-b845-22c439002a1b
+  namespace: aa1020-dev
+  resourceVersion: '2184149179'
+  uid: c843d72a-5214-4daf-9423-679afe1628dc
 spec:
   params:
-  - description: URL to git repo
-    name: GIT_REPO
-    type: string
-  - default: master
-    description: Reference to branch
-    name: GIT_REF
-    type: string
+    - description: URL to git repo
+      name: GIT_REPO
+      type: string
+    - default: master
+      description: Reference to branch
+      name: GIT_REF
+      type: string
   tasks:
-  - name: git-clone-1-19-0
-    params:
-    - name: CRT_FILENAME
-      value: ca-bundle.crt
-    - name: HTTP_PROXY
-      value: ""
-    - name: HTTPS_PROXY
-      value: ""
-    - name: NO_PROXY
-      value: ""
-    - name: SUBDIRECTORY
-      value: ""
-    - name: USER_HOME
-      value: /home/git
-    - name: DELETE_EXISTING
-      value: "true"
-    - name: VERBOSE
-      value: "false"
-    - name: SSL_VERIFY
-      value: "true"
-    - name: url
-      value: https://github.com/CSCI-GA-2820-SU25-001/products
-    - name: REVISION
-      value: $(params.GIT_REF)
-    - name: REFSPEC
-      value: ""
-    - name: SUBMODULES
-      value: "true"
-    - name: DEPTH
-      value: "1"
-    - name: SPARSE_CHECKOUT_DIRECTORIES
-      value: ""
-    taskRef:
-      kind: Task
-      name: git-clone
-    workspaces:
-    - name: output
-      workspace: pipeline-workspace
-  - name: pylint
-    params:
-    - name: image
-      value: registry.gitlab.com/pipeline-components/pylint:0.12.0@sha256:051b701936dfab6fa27bd1ebd50ef56b19577565661bc0227e50dd1cf94a3d6e
-    - name: path
-      value: service
-    - name: requirements_file
-      value: ""
-    - name: args
-      value: []
-    - name: pip_conf_file
-      value: ""
-    runAfter:
-    - git-clone-1-19-0
-    taskRef:
-      kind: Task
-      name: pylint
-    workspaces:
-    - name: source
-      workspace: pipeline-workspace
+    - name: git-clone
+      params:
+        - name: url
+          value: $(params.GIT_REPO)
+        - name: REVISION
+          value: $(params.GIT_REF)
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: pipeline-workspace
+    - name: pylint
+      params:
+        - name: path
+          value: service
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: Task
+        name: pylint
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+    - name: pytest
+      params:
+        - name: secret-name
+          value: postgres-creds
+        - name: secret-key
+          value: database_uri
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: Task
+        name: pytest
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
   workspaces:
-  - name: pipeline-workspace
+    - name: pipeline-workspace

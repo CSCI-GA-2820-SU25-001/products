@@ -23,6 +23,7 @@ from flask import Flask
 from service import config
 from service.common import log_handlers
 from service.common.cli_commands import init_cli
+import os
 
 
 ############################################################
@@ -34,6 +35,11 @@ def create_app():
     # Create the Flask app
     app = Flask(__name__)
     app.config.from_object(config)
+
+    # Overwrite the DATABASE_URI from the config  <-- ADD THIS
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+        "DATABASE_URL", app.config["SQLALCHEMY_DATABASE_URI"]
+    )
 
     # Turn off strict slashes because it violates best practices
     app.url_map.strict_slashes = False
