@@ -37,3 +37,78 @@ spec:
   - description: The workspace consisting of the custom pip settings.
     name: pip-conf
     optional: true
+
+--- 
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: pytest
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/categories: Testing
+    tekton.dev/pipelines.minVersion: "0.17.0"
+    tekton.dev/tags: python, pytest
+    tekton.dev/displayName: "pytest tests"
+    tekton.dev/platforms: "linux/amd64,linux/s390x,linux/ppc64le"
+spec:
+  workspaces:
+    - name: source
+  description: >-
+    This task can be used to perform unit tests with pytest.
+    It supports both requirements.txt, Pipfile, & poetry.lock files.
+
+    It also has the ability to create an environment variable
+    that is sourced from a Secret. This allows you to define
+    credentials that can be used to connect to a test database.
+  params:
+    - name: pytest-args
+      description: The arguments to pass to the pytest CLI.
+      type: array
+      default: []
+    - name: secret-name
+      description: The name of the secret containing a database_uri key
+      type: string
+      default: "postgres-creds"
+    - name: secret-key
+      description: The name of the key that contains the database uri
+      type: string
+      default: "database_uri"
+  steps:
+    - name: pytest
+      image: quay.io/rofrano/python:3.11-slim
+      workingDir: $(workspaces.source.path)
+      env:
+       - name: DATABASE_URI
+         valueFrom:
+           secretKeyRef:
+             name: $(params.secret-name)
+             key: $(params.secret-key)
+      script: |
+        #!/bin/bash
+        set -e
+        export PATH=$PATH:$HOME/.local/bin:
+
+        echo "***** Installing dependencies *****"
+        if [ -e "poetry.lock" ]; then
+          echo "Found poetry.lock file: using poetry ..."
+          python -m pip install --upgrade pip poetry
+          poetry config virtualenvs.create false
+          poetry install
+        elif [ -e "Pipfile" ]; then
+          echo "Found Pipfile file: using pipenv ..."
+          python -m pip install --upgrade pip pipenv
+          pipenv install --system --dev
+        elif [ -e "requirements.txt" ]; then
+          python -m pip install --user -r requirements.txt
+        fi
+
+        # Make sure pylint is installed
+        python -m pip install pytest
+
+        echo "***** Running Tests *****"
+        pytest --version
+        pytest
+      args:
+        - "$(params.pytest-args)"
