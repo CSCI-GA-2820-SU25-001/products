@@ -14,7 +14,6 @@ metadata:
   labels:
     app.kubernetes.io/version: "0.3"
   name: pylint
-  namespace: aa1020-dev
   resourceVersion: "2181687215"
   uid: 80fe3d04-9e46-4e3c-8d9e-80125510d704
 spec:
