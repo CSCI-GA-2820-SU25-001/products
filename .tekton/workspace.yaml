@@ -7,15 +7,14 @@ items:
       pv.kubernetes.io/bind-completed: "yes"
       pv.kubernetes.io/bound-by-controller: "yes"
       volume.beta.kubernetes.io/storage-provisioner: ebs.csi.aws.com
-      volume.kubernetes.io/selected-node: ip-10-0-30-242.ec2.internal
+      volume.kubernetes.io/selected-node: ip-10-0-25-14.ec2.internal
       volume.kubernetes.io/storage-provisioner: ebs.csi.aws.com
-    creationTimestamp: "2025-08-03T00:19:29Z"
+    creationTimestamp: "2025-08-01T20:17:11Z"
     finalizers:
     - kubernetes.io/pvc-protection
     name: pipeline-pvc
-    namespace: mp6828-dev
-    resourceVersion: "3108678642"
-    uid: edc275b9-0c50-46c2-8ed3-3bd6a7908c3f
+    resourceVersion: "2147426223"
+    uid: d280db70-28d0-4b39-a2fa-3fb0e4b556b1
   spec:
     accessModes:
     - ReadWriteOnce
@@ -24,7 +23,39 @@ items:
         storage: 1Gi
     storageClassName: gp3
     volumeMode: Filesystem
-    volumeName: pvc-edc275b9-0c50-46c2-8ed3-3bd6a7908c3f
+    volumeName: pvc-d280db70-28d0-4b39-a2fa-3fb0e4b556b1
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 1Gi
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"name":"postgres-pvc"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"1Gi"}}}}
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: ebs.csi.aws.com
+      volume.kubernetes.io/selected-node: ip-10-0-25-14.ec2.internal
+      volume.kubernetes.io/storage-provisioner: ebs.csi.aws.com
+    creationTimestamp: "2025-08-01T20:12:52Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    name: postgres-pvc
+    resourceVersion: "2147300270"
+    uid: da9a163f-f333-4368-a8f0-b7d0b4ce481c
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: gp3
+    volumeMode: Filesystem
+    volumeName: pvc-da9a163f-f333-4368-a8f0-b7d0b4ce481c
   status:
     accessModes:
     - ReadWriteOnce
