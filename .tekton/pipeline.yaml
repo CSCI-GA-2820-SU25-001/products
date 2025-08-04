@@ -16,6 +16,14 @@ spec:
     description: branch
     name: GIT_REF
     type: string
+  - default: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.APP_NAME):latest
+    description: Name of the image
+    name: IMAGE_NAME
+    type: string
+  - default: products
+    description: Name of the application
+    name: APP_NAME
+    type: string
   tasks:
   - name: git-clone-1-19-0
     params:
@@ -74,6 +82,59 @@ spec:
     taskRef:
       kind: Task
       name: pytest-env
+    workspaces:
+    - name: source
+      workspace: pipeline-workspace
+  - name: buildah-1-19-0
+    params:
+    - name: IMAGE
+      value: $(params.IMAGE_NAME)
+    - name: DOCKERFILE
+      value: ./Dockerfile
+    - name: BUILD_ARGS
+      value: []
+    - name: CONTEXT
+      value: .
+    - name: STORAGE_DRIVER
+      value: vfs
+    - name: FORMAT
+      value: oci
+    - name: BUILD_EXTRA_ARGS
+      value: ""
+    - name: PUSH_EXTRA_ARGS
+      value: ""
+    - name: SKIP_PUSH
+      value: "false"
+    - name: TLS_VERIFY
+      value: "true"
+    - name: VERBOSE
+      value: "false"
+    runAfter:
+    - pytest-env
+    - pylint
+    taskRef:
+      params:
+      - name: kind
+        value: task
+      - name: name
+        value: buildah-1-19-0
+      - name: namespace
+        value: openshift-pipelines
+      resolver: cluster
+    workspaces:
+    - name: source
+      workspace: pipeline-workspace
+  - name: deploy-image
+    params:
+    - name: image-name
+      value: $(params.IMAGE_NAME)
+    - name: manifest-dir
+      value: k8s
+    runAfter:
+    - buildah-1-19-0
+    taskRef:
+      kind: Task
+      name: deploy-image
     workspaces:
     - name: source
       workspace: pipeline-workspace
