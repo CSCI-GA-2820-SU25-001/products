@@ -39,51 +39,79 @@ spec:
     optional: true
 
 ---
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: pytest-env
-  labels:
-    app.kubernetes.io/version: "0.1"
   annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"tekton.dev/categories":"Testing","tekton.dev/displayName":"pytest tests","tekton.dev/pipelines.minVersion":"0.17.0","tekton.dev/platforms":"linux/amd64,linux/s390x,linux/ppc64le","tekton.dev/tags":"python, pytest"},"labels":{"app.kubernetes.io/version":"0.1"},"name":"pytest-env","namespace":"aditya-rajpathak-dev"},"spec":{"description":"This task can be used to perform unit tests with pytest. It supports both requirements.txt, Pipfile, \u0026 poetry.lock files.\nIt also has the ability to create an environment variable that is sourced from a Secret. This allows you to define credentials that can be used to connect to a test database.","params":[{"default":[],"description":"The arguments to pass to the pytest CLI.","name":"pytest-args","type":"array"},{"default":"postgres-creds","description":"The name of the secret containing a database_uri key","name":"secret-name","type":"string"},{"default":"database_uri","description":"The name of the key that contains the database uri","name":"secret-key","type":"string"}],"steps":[{"args":["$(params.pytest-args)"],"env":[{"name":"DATABASE_URI","valueFrom":{"secretKeyRef":{"key":"$(params.secret-key)","name":"$(params.secret-name)"}}}],"image":"quay.io/rofrano/python:3.11-slim","name":"pytest","script":"#!/bin/bash\nset -e\nexport PATH=$PATH:$HOME/.local/bin:\n\necho \"***** Installing dependencies *****\"\nif [ -e \"poetry.lock\" ]; then\n  echo \"Found poetry.lock file: using poetry ...\"\n  python -m pip install --upgrade pip poetry\n  poetry config virtualenvs.create false\n  poetry install\nelif [ -e \"Pipfile\" ]; then\n  echo \"Found Pipfile file: using pipenv ...\"\n  python -m pip install --upgrade pip pipenv\n  pipenv install --system --dev\nelif -e \"requirements.txt\" ]; then\n  python -m pip install --user -r requirements.txt\nfi\n\n# Make sure pylint is installed\npython -m pip install pytest\n\necho \"***** Running Tests *****\"\npytest --version\npytest\n","workingDir":"$(workspaces.source.path)"}],"workspaces":[{"name":"source"}]}}
     tekton.dev/categories: Testing
-    tekton.dev/pipelines.minVersion: "0.17.0"
-    tekton.dev/tags: python, pytest
-    tekton.dev/displayName: "pytest tests"
-    tekton.dev/platforms: "linux/amd64,linux/s390x,linux/ppc64le"
+    tekton.dev/displayName: pytest tests
+    tekton.dev/pipelines.minVersion: 0.17.0
+    tekton.dev/platforms: 'linux/amd64,linux/s390x,linux/ppc64le'
+    tekton.dev/tags: 'python, pytest'
+  resourceVersion: '3162924570'
+  name: pytest-env
+  uid: 581b5a49-5a8b-4a81-a375-e88dda49e37d
+  creationTimestamp: '2025-08-04T19:42:28Z'
+  generation: 1
+  managedFields:
+    - apiVersion: tekton.dev/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+            'f:tekton.dev/categories': {}
+            'f:tekton.dev/displayName': {}
+            'f:tekton.dev/pipelines.minVersion': {}
+            'f:tekton.dev/platforms': {}
+            'f:tekton.dev/tags': {}
+          'f:labels':
+            .: {}
+            'f:app.kubernetes.io/version': {}
+        'f:spec':
+          .: {}
+          'f:description': {}
+          'f:params': {}
+          'f:steps': {}
+          'f:workspaces': {}
+      manager: kubectl-client-side-apply
+      operation: Update
+      time: '2025-08-04T19:42:28Z'
+  namespace: aditya-rajpathak-dev
+  labels:
+    app.kubernetes.io/version: '0.1'
 spec:
-  workspaces:
-    - name: source
-  description: >-
-    This task can be used to perform unit tests with pytest.
-    It supports both requirements.txt, Pipfile, & poetry.lock files.
-
-    It also has the ability to create an environment variable
-    that is sourced from a Secret. This allows you to define
-    credentials that can be used to connect to a test database.
+  description: |-
+    This task can be used to perform unit tests with pytest. It supports both requirements.txt, Pipfile, & poetry.lock files.
+    It also has the ability to create an environment variable that is sourced from a Secret. This allows you to define credentials that can be used to connect to a test database.
   params:
-    - name: pytest-args
+    - default: []
       description: The arguments to pass to the pytest CLI.
+      name: pytest-args
       type: array
-      default: []
-    - name: secret-name
+    - default: postgres-creds
       description: The name of the secret containing a database_uri key
+      name: secret-name
       type: string
-      default: "postgres-creds"
-    - name: secret-key
+    - default: database_uri
       description: The name of the key that contains the database uri
+      name: secret-key
       type: string
-      default: "database_uri"
   steps:
-    - name: pytest
-      image: quay.io/rofrano/python:3.11-slim
-      workingDir: $(workspaces.source.path)
+    - args:
+        - $(params.pytest-args)
+      computeResources: {}
       env:
-       - name: DATABASE_URI
-         valueFrom:
-           secretKeyRef:
-             name: $(params.secret-name)
-             key: $(params.secret-key)
+        - name: DATABASE_URI
+          valueFrom:
+            secretKeyRef:
+              key: $(params.secret-key)
+              name: $(params.secret-name)
+      image: 'quay.io/rofrano/python:3.11-slim'
+      name: pytest
       script: |
         #!/bin/bash
         set -e
@@ -109,13 +137,6 @@ spec:
         echo "***** Running Tests *****"
         pytest --version
         pytest
-      args:
-        - "$(params.pytest-args)"
-
----
-
-
-
-
-
-
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - name: source
