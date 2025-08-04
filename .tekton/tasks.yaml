@@ -44,7 +44,7 @@ kind: Task
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"tekton.dev/categories":"Testing","tekton.dev/displayName":"pytest tests","tekton.dev/pipelines.minVersion":"0.17.0","tekton.dev/platforms":"linux/amd64,linux/s390x,linux/ppc64le","tekton.dev/tags":"python, pytest"},"labels":{"app.kubernetes.io/version":"0.1"},"name":"pytest-env","namespace":"aditya-rajpathak-dev"},"spec":{"description":"This task can be used to perform unit tests with pytest. It supports both requirements.txt, Pipfile, \u0026 poetry.lock files.\nIt also has the ability to create an environment variable that is sourced from a Secret. This allows you to define credentials that can be used to connect to a test database.","params":[{"default":[],"description":"The arguments to pass to the pytest CLI.","name":"pytest-args","type":"array"},{"default":"postgres-creds","description":"The name of the secret containing a database_uri key","name":"secret-name","type":"string"},{"default":"database_uri","description":"The name of the key that contains the database uri","name":"secret-key","type":"string"}],"steps":[{"args":["$(params.pytest-args)"],"env":[{"name":"DATABASE_URI","valueFrom":{"secretKeyRef":{"key":"$(params.secret-key)","name":"$(params.secret-name)"}}}],"image":"quay.io/rofrano/python:3.11-slim","name":"pytest","script":"#!/bin/bash\nset -e\nexport PATH=$PATH:$HOME/.local/bin:\n\necho \"***** Installing dependencies *****\"\nif [ -e \"poetry.lock\" ]; then\n  echo \"Found poetry.lock file: using poetry ...\"\n  python -m pip install --upgrade pip poetry\n  poetry config virtualenvs.create false\n  poetry install\nelif [ -e \"Pipfile\" ]; then\n  echo \"Found Pipfile file: using pipenv ...\"\n  python -m pip install --upgrade pip pipenv\n  pipenv install --system --dev\nelif -e \"requirements.txt\" ]; then\n  python -m pip install --user -r requirements.txt\nfi\n\n# Make sure pylint is installed\npython -m pip install pytest\n\necho \"***** Running Tests *****\"\npytest --version\npytest\n","workingDir":"$(workspaces.source.path)"}],"workspaces":[{"name":"source"}]}}
+      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"tekton.dev/categories":"Testing","tekton.dev/displayName":"pytest tests","tekton.dev/pipelines.minVersion":"0.17.0","tekton.dev/platforms":"linux/amd64,linux/s390x,linux/ppc64le","tekton.dev/tags":"python, pytest"},"labels":{"app.kubernetes.io/version":"0.1"},"name":"pytest-env"},"spec":{"description":"This task can be used to perform unit tests with pytest. It supports both requirements.txt, Pipfile, \u0026 poetry.lock files.\nIt also has the ability to create an environment variable that is sourced from a Secret. This allows you to define credentials that can be used to connect to a test database.","params":[{"default":[],"description":"The arguments to pass to the pytest CLI.","name":"pytest-args","type":"array"},{"default":"postgres-creds","description":"The name of the secret containing a database_uri key","name":"secret-name","type":"string"},{"default":"database_uri","description":"The name of the key that contains the database uri","name":"secret-key","type":"string"}],"steps":[{"args":["$(params.pytest-args)"],"env":[{"name":"DATABASE_URI","valueFrom":{"secretKeyRef":{"key":"$(params.secret-key)","name":"$(params.secret-name)"}}}],"image":"quay.io/rofrano/python:3.11-slim","name":"pytest","script":"#!/bin/bash\nset -e\nexport PATH=$PATH:$HOME/.local/bin:\n\necho \"***** Installing dependencies *****\"\nif [ -e \"poetry.lock\" ]; then\n  echo \"Found poetry.lock file: using poetry ...\"\n  python -m pip install --upgrade pip poetry\n  poetry config virtualenvs.create false\n  poetry install\nelif [ -e \"Pipfile\" ]; then\n  echo \"Found Pipfile file: using pipenv ...\"\n  python -m pip install --upgrade pip pipenv\n  pipenv install --system --dev\nelif -e \"requirements.txt\" ]; then\n  python -m pip install --user -r requirements.txt\nfi\n\n# Make sure pylint is installed\npython -m pip install pytest\n\necho \"***** Running Tests *****\"\npytest --version\npytest\n","workingDir":"$(workspaces.source.path)"}],"workspaces":[{"name":"source"}]}}
     tekton.dev/categories: Testing
     tekton.dev/displayName: pytest tests
     tekton.dev/pipelines.minVersion: 0.17.0
@@ -80,7 +80,6 @@ metadata:
       manager: kubectl-client-side-apply
       operation: Update
       time: '2025-08-04T19:42:28Z'
-  namespace: aditya-rajpathak-dev
   labels:
     app.kubernetes.io/version: '0.1'
 spec:
@@ -140,3 +139,100 @@ spec:
       workingDir: $(workspaces.source.path)
   workspaces:
     - name: source
+
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"tekton.dev/categories":"Deployment","tekton.dev/displayName":"deploy image","tekton.dev/pipelines.minVersion":"0.17.0","tekton.dev/platforms":"linux/amd64","tekton.dev/tags":"openshift, deploy"},"labels":{"app.kubernetes.io/version":"0.1"},"name":"deploy-image","namespace":"mp6828-dev"},"spec":{"description":"This task will update the deployment.yaml with the latest image name and then apply that yaml file and it's service file.","params":[{"description":"The fully qualified name of the new image to deploy","name":"image-name","type":"string"},{"default":"k8s","description":"The directory in source that contains yaml manifests","name":"manifest-dir","type":"string"}],"steps":[{"args":["#!/bin/bash\nset -e\n\necho Applying manifests in $(inputs.params.manifest-dir) directory\n\necho \"**********************************************************************\"\necho \"Installing YQ...\"\necho \"**********************************************************************\"\nwget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64\nchmod a+x /usr/bin/yq\n\necho \"*********************  DEPLOYMENT  ***********************\"\necho \"Deploying $(inputs.params.image-name) ...\"\n\nyq -e -i '.spec.template.spec.containers[0].image=\"$(inputs.params.image-name)\"' $(inputs.params.manifest-dir)/deployment.yaml\ncat $(inputs.params.manifest-dir)/deployment.yaml\n\necho \"************************************************************\"\necho \"OC APPLY...\"\noc apply -f $(inputs.params.manifest-dir)/deployment.yaml\noc apply -f $(inputs.params.manifest-dir)/service.yaml\n\necho \"************************************************************\"\nsleep 3\necho \"Pods:\"\noc get pods\necho \"\""],"command":["/bin/bash","-c"],"image":"quay.io/openshift/origin-cli:latest","name":"deploy","workingDir":"/workspace/source"}],"workspaces":[{"name":"source"}]}}
+    tekton.dev/categories: Deployment
+    tekton.dev/displayName: deploy image
+    tekton.dev/pipelines.minVersion: 0.17.0
+    tekton.dev/platforms: linux/amd64
+    tekton.dev/tags: 'openshift, deploy'
+  resourceVersion: '3163945240'
+  name: deploy-image
+  uid: a5bbea8a-9121-4b7e-b91c-bc24dcf620d5
+  creationTimestamp: '2025-08-04T20:31:02Z'
+  generation: 1
+  managedFields:
+    - apiVersion: tekton.dev/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+            'f:tekton.dev/categories': {}
+            'f:tekton.dev/displayName': {}
+            'f:tekton.dev/pipelines.minVersion': {}
+            'f:tekton.dev/platforms': {}
+            'f:tekton.dev/tags': {}
+          'f:labels':
+            .: {}
+            'f:app.kubernetes.io/version': {}
+        'f:spec':
+          .: {}
+          'f:description': {}
+          'f:params': {}
+          'f:steps': {}
+          'f:workspaces': {}
+      manager: kubectl-client-side-apply
+      operation: Update
+      time: '2025-08-04T20:31:02Z'
+  namespace: mp6828-dev
+  labels:
+    app.kubernetes.io/version: '0.1'
+spec:
+  description: This task will update the deployment.yaml with the latest image name and then apply that yaml file and it's service file.
+  params:
+    - description: The fully qualified name of the new image to deploy
+      name: image-name
+      type: string
+    - default: k8s
+      description: The directory in source that contains yaml manifests
+      name: manifest-dir
+      type: string
+  steps:
+    - args:
+        - |-
+          #!/bin/bash
+          set -e
+
+          echo Applying manifests in $(inputs.params.manifest-dir) directory
+
+          echo "**********************************************************************"
+          echo "Installing YQ..."
+          echo "**********************************************************************"
+          wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod a+x /usr/bin/yq
+
+          echo "*********************  DEPLOYMENT  ***********************"
+          echo "Deploying $(inputs.params.image-name) ..."
+
+          yq -e -i '.spec.template.spec.containers[0].image="$(inputs.params.image-name)"' $(inputs.params.manifest-dir)/deployment.yaml
+          cat $(inputs.params.manifest-dir)/deployment.yaml
+
+          echo "************************************************************"
+          echo "OC APPLY..."
+          oc apply -f $(inputs.params.manifest-dir)/deployment.yaml
+          oc apply -f $(inputs.params.manifest-dir)/service.yaml
+
+          echo "************************************************************"
+          sleep 3
+          echo "Pods:"
+          oc get pods
+          echo ""
+      command:
+        - /bin/bash
+        - '-c'
+      computeResources: {}
+      image: 'quay.io/openshift/origin-cli:latest'
+      name: deploy
+      workingDir: /workspace/source
+  workspaces:
+    - name: source
+
+---

@@ -18,7 +18,6 @@ metadata:
   labels:
     app.kubernetes.io/version: "0.9"
   name: git-clone
-  namespace: aa1020-dev
   resourceVersion: "2178462976"
   uid: 10222ae5-e120-4f06-bf65-49209bf151b9
 spec:
