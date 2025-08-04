@@ -3,12 +3,13 @@ kind: Pipeline
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"tekton.dev/v1","kind":"Pipeline","metadata":{"annotations":{},"creationTimestamp":"2025-08-01T20:15:56Z","generation":4,"name":"cd-pipeline","namespace":"aa1020-dev","resourceVersion":"2178653866","uid":"25c3d020-6666-4bf4-b845-22c439002a1b"},"spec":{"params":[{"description":"URL to git repo","name":"GIT_REPO","type":"string"},{"default":"master","description":"Reference to branch","name":"GIT_REF","type":"string"}],"tasks":[{"name":"git-clone-1-19-0","params":[{"name":"CRT_FILENAME","value":"ca-bundle.crt"},{"name":"HTTP_PROXY","value":""},{"name":"HTTPS_PROXY","value":""},{"name":"NO_PROXY","value":""},{"name":"SUBDIRECTORY","value":""},{"name":"USER_HOME","value":"/home/git"},{"name":"DELETE_EXISTING","value":"true"},{"name":"VERBOSE","value":"false"},{"name":"SSL_VERIFY","value":"true"},{"name":"url","value":"https://github.com/CSCI-GA-2820-SU25-001/products"},{"name":"REVISION","value":"$(params.GIT_REF)"},{"name":"REFSPEC","value":""},{"name":"SUBMODULES","value":"true"},{"name":"DEPTH","value":"1"},{"name":"SPARSE_CHECKOUT_DIRECTORIES","value":""}],"taskRef":{"kind":"Task","name":"git-clone"},"workspaces":[{"name":"output","workspace":"pipeline-workspace"}]}],"workspaces":[{"name":"pipeline-workspace"}]}}
-  creationTimestamp: "2025-08-01T20:15:56Z"
-  generation: 8
+      {"apiVersion":"tekton.dev/v1","kind":"Pipeline","metadata":{"annotations":{},"creationTimestamp":"2025-08-01T20:15:56Z","generation":5,"name":"cd-pipeline","namespace":"aditya-rajpathak-dev","resourceVersion":"2178702916","uid":"25c3d020-6666-4bf4-b845-22c439002a1b"},"spec":{"params":[{"description":"URL to git repo","name":"GIT_REPO","type":"string"},{"default":"master","description":"Reference to branch","name":"GIT_REF","type":"string"}],"tasks":[{"name":"git-clone-1-19-0","params":[{"name":"CRT_FILENAME","value":"ca-bundle.crt"},{"name":"HTTP_PROXY","value":""},{"name":"HTTPS_PROXY","value":""},{"name":"NO_PROXY","value":""},{"name":"SUBDIRECTORY","value":""},{"name":"USER_HOME","value":"/home/git"},{"name":"DELETE_EXISTING","value":"true"},{"name":"VERBOSE","value":"false"},{"name":"SSL_VERIFY","value":"true"},{"name":"url","value":"https://github.com/CSCI-GA-2820-SU25-001/products"},{"name":"REVISION","value":"$(params.GIT_REF)"},{"name":"REFSPEC","value":""},{"name":"SUBMODULES","value":"true"},{"name":"DEPTH","value":"1"},{"name":"SPARSE_CHECKOUT_DIRECTORIES","value":""}],"taskRef":{"kind":"Task","name":"git-clone"},"workspaces":[{"name":"output","workspace":"pipeline-workspace"}]}],"workspaces":[{"name":"pipeline-workspace"}]}}
+  creationTimestamp: "2025-08-03T00:06:39Z"
+  generation: 5
   name: cd-pipeline
-  resourceVersion: "2181459607"
-  uid: 25c3d020-6666-4bf4-b845-22c439002a1b
+  namespace: aditya-rajpathak-dev
+  resourceVersion: "3163351445"
+  uid: 7f2a46d1-4cee-4950-a229-cc6d3d348fc2
 spec:
   params:
   - description: URL to git repo
@@ -17,6 +18,14 @@ spec:
   - default: master
     description: Reference to branch
     name: GIT_REF
+    type: string
+  - default: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.APP_NAME):latest
+    description: Name of the image
+    name: IMAGE_NAME
+    type: string
+  - default: products
+    description: Name of the application
+    name: APP_NAME
     type: string
   tasks:
   - name: git-clone-1-19-0
@@ -57,23 +66,70 @@ spec:
     workspaces:
     - name: output
       workspace: pipeline-workspace
+  - name: pytest-env
+    params:
+    - name: pytest-args
+      value: []
+    - name: secret-name
+      value: postgres-creds
+    - name: secret-key
+      value: database_uri
+    runAfter:
+    - git-clone-1-19-0
+    taskRef:
+      kind: Task
+      name: pytest-env
+    workspaces:
+    - name: source
+      workspace: pipeline-workspace
   - name: pylint
     params:
-    - name: image
-      value: registry.gitlab.com/pipeline-components/pylint:0.12.0@sha256:051b701936dfab6fa27bd1ebd50ef56b19577565661bc0227e50dd1cf94a3d6e
     - name: path
       value: service
-    - name: requirements_file
-      value: ""
-    - name: args
-      value: []
-    - name: pip_conf_file
-      value: ""
     runAfter:
     - git-clone-1-19-0
     taskRef:
       kind: Task
       name: pylint
+    workspaces:
+    - name: source
+      workspace: pipeline-workspace
+  - name: buildah-1-19-0
+    params:
+    - name: IMAGE
+      value: $(params.IMAGE_NAME)
+    - name: DOCKERFILE
+      value: ./Dockerfile
+    - name: BUILD_ARGS
+      value: []
+    - name: CONTEXT
+      value: .
+    - name: STORAGE_DRIVER
+      value: vfs
+    - name: FORMAT
+      value: oci
+    - name: BUILD_EXTRA_ARGS
+      value: ""
+    - name: PUSH_EXTRA_ARGS
+      value: ""
+    - name: SKIP_PUSH
+      value: "false"
+    - name: TLS_VERIFY
+      value: "true"
+    - name: VERBOSE
+      value: "false"
+    runAfter:
+    - pytest-env
+    - pylint
+    taskRef:
+      params:
+      - name: kind
+        value: task
+      - name: name
+        value: buildah-1-19-0
+      - name: namespace
+        value: openshift-pipelines
+      resolver: cluster
     workspaces:
     - name: source
       workspace: pipeline-workspace
