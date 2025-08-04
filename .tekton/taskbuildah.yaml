@@ -20,7 +20,6 @@ metadata:
   labels:
     app.kubernetes.io/version: 0.7.1
   name: buildah
-  namespace: aditya-rajpathak-dev
   resourceVersion: "3163135008"
   uid: 43deeac6-53bf-40bb-87b2-42fef00ce21a
 spec:
