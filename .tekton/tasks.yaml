@@ -236,3 +236,94 @@ spec:
     - name: source
 
 ---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"tekton.dev/categories":"Testing","tekton.dev/displayName":"bdd tests","tekton.dev/pipelines.minVersion":"0.17.0","tekton.dev/platforms":"linux/amd64","tekton.dev/tags":"python, bdd, behave"},"labels":{"app.kubernetes.io/version":"0.1"},"name":"behave","namespace":"mp6828-dev"},"spec":{"description":"This task can be used to perform bdd tests with behave.","params":[{"description":"The url of the application to test","name":"base-url","type":"string"},{"default":"60","description":"The number of seconds to wait for a reply","name":"wait-seconds","type":"string"},{"default":"chrome","description":"The web driver to use (chrome or firefox)","name":"driver","type":"string"}],"steps":[{"env":[{"name":"BASE_URL","value":"$(params.base-url)"},{"name":"WAIT_SECONDS","value":"$(params.wait-seconds)"},{"name":"DRIVER","value":"$(params.driver)"}],"image":"quay.io/rofrano/pipeline-selenium","name":"behave","script":"#!/bin/bash\nset -e\nexport PATH=$PATH:$HOME/.local/bin:\n\necho \"***** Installing dependencies *****\"\nif [ -e \"poetry.lock\" ]; then\n  echo \"Found poetry.lock file: using poetry\"\n  python -m pip install poetry poetry-plugin-export\n  poetry export --with=dev -f requirements.txt --output requirements.txt\nelif [ -e \"Pipfile\" ]; then\n  echo \"Found Pipfile file: using pipenv ...\"\n  python -m pip install --upgrade pip pipenv\n  pipenv requirements --dev \u003e requirements.txt\nfi\npython -m pip install --user -r requirements.txt\n\necho \"***** Running Tests *****\"\nbehave\n","workingDir":"$(workspaces.source.path)"}],"workspaces":[{"name":"source"}]}}
+    tekton.dev/categories: Testing
+    tekton.dev/displayName: bdd tests
+    tekton.dev/pipelines.minVersion: 0.17.0
+    tekton.dev/platforms: linux/amd64
+    tekton.dev/tags: 'python, bdd, behave'
+  resourceVersion: '3194235504'
+  name: behave
+  uid: e2e12c90-2ded-4aab-bf26-e33f2df0a4cf
+  creationTimestamp: '2025-08-05T20:37:48Z'
+  generation: 1
+  managedFields:
+    - apiVersion: tekton.dev/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+            'f:tekton.dev/categories': {}
+            'f:tekton.dev/displayName': {}
+            'f:tekton.dev/pipelines.minVersion': {}
+            'f:tekton.dev/platforms': {}
+            'f:tekton.dev/tags': {}
+          'f:labels':
+            .: {}
+            'f:app.kubernetes.io/version': {}
+        'f:spec':
+          .: {}
+          'f:description': {}
+          'f:params': {}
+          'f:steps': {}
+          'f:workspaces': {}
+      manager: kubectl-client-side-apply
+      operation: Update
+      time: '2025-08-05T20:37:48Z'
+  namespace: mp6828-dev
+  labels:
+    app.kubernetes.io/version: '0.1'
+spec:
+  description: This task can be used to perform bdd tests with behave.
+  params:
+    - description: The url of the application to test
+      name: base-url
+      type: string
+    - default: '60'
+      description: The number of seconds to wait for a reply
+      name: wait-seconds
+      type: string
+    - default: chrome
+      description: The web driver to use (chrome or firefox)
+      name: driver
+      type: string
+  steps:
+    - computeResources: {}
+      env:
+        - name: BASE_URL
+          value: $(params.base-url)
+        - name: WAIT_SECONDS
+          value: $(params.wait-seconds)
+        - name: DRIVER
+          value: $(params.driver)
+      image: quay.io/rofrano/pipeline-selenium
+      name: behave
+      script: |
+        #!/bin/bash
+        set -e
+        export PATH=$PATH:$HOME/.local/bin:
+
+        echo "***** Installing dependencies *****"
+        if [ -e "poetry.lock" ]; then
+          echo "Found poetry.lock file: using poetry"
+          python -m pip install poetry poetry-plugin-export
+          poetry export --with=dev -f requirements.txt --output requirements.txt
+        elif [ -e "Pipfile" ]; then
+          echo "Found Pipfile file: using pipenv ..."
+          python -m pip install --upgrade pip pipenv
+          pipenv requirements --dev > requirements.txt
+        fi
+        python -m pip install --user -r requirements.txt
+
+        echo "***** Running Tests *****"
+        behave
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - name: source

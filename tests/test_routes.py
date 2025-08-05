@@ -325,6 +325,14 @@ class TestProduct(TestCase):
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
 
+    def test_default_error_handler(self):
+        """It should catch an unhandled Exception and return a 500 with message"""
+        response = self.client.get("/api/products/error")
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        data = response.get_json()
+        self.assertIn("message", data)
+        self.assertEqual(data["message"], "This is a test exception")
+
 
 ######################################################################
 #  T E S T   S A D   P A T H S
