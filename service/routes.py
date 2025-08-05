@@ -108,6 +108,7 @@ class ProductCollection(Resource):
             {"Location": api.url_for(ProductResource, product_id=product.id)},
         )
 
+
 ######################################################################
 # GET HEALTH CHECK
 ######################################################################
@@ -116,6 +117,7 @@ class ProductCollection(Resource):
 @ns.route("/health")
 class HealthCheck(Resource):
     """Health Check Resource"""
+
     def get(self):
         """Returns a simple health check"""
         return {"status": "OK"}, status.HTTP_200_OK
@@ -184,9 +186,9 @@ def generate_apikey():
     return secrets.token_hex(16)
 
 
-@api.errorhandler
+@api.errorhandler(Exception)
 def default_error_handler(error):
-    """Defines the default errorhandler"""
+    """Defines the default error handler for unhandled Exceptions"""
     message = str(error)
     code = getattr(error, "code", 500)
     try:
@@ -210,3 +212,12 @@ class ProductPurchaseResource(Resource):
             )
         # Implement purchase logic here...
         return product.serialize()
+
+
+@ns.route("/error")
+class TriggerErrorResource(Resource):
+    """Needed for error handling tests"""
+
+    def get(self):
+        """Handles error handling test"""
+        raise RuntimeError("This is a test exception")
