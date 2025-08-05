@@ -6,7 +6,7 @@ from os import getenv
 from selenium import webdriver
 
 WAIT_SECONDS = int(getenv("WAIT_SECONDS", "30"))
-BASE_URL = getenv("BASE_URL", "http://localhost:8080")
+BASE_URL = getenv("BASE_URL", "https://products-mp6828-dev.apps.rm1.0a51.p1.openshiftapps.com/")
 DRIVER = getenv("DRIVER", "chrome").lower()
 
 
